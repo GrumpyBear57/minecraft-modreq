@@ -1,0 +1,8 @@
+name: Mod-Request
+main: com.grumpybear.modreq.modreq
+version: 1.0
+author: GrumpyBear57
+description: Modreq plugin, similiar to an IRL ticketing system.
+commands: 
+  hello: 
+    description: returns "world!"
