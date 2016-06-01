@@ -47,7 +47,7 @@ public void onEnable() {
 	getLogger().info("Successfully loaded modreq " + version);
 	Bukkit.broadcastMessage("Successfully loaded modreq " + version);
 	if (newRequests) {
-		getLogger().info("New (request(s) in queue!");
+		getLogger().info("New request(s) in queue!");
 	}
 }
 
@@ -61,7 +61,7 @@ public class staffJoinListener implements Listener {
 	public void onPlayerJoin(PlayerJoinEvent event) {
 		Player player = event.getPlayer();
 		if (player.hasPermission("modreq.viewQueue") && newRequests) {
-			player.sendMessage(prefix + "New (request(s) in queue!");
+			player.sendMessage(prefix + "New request(s) in queue!");
 		}
 	}
 }
