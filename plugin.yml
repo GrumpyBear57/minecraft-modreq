@@ -4,5 +4,28 @@ version: 1.0
 author: GrumpyBear57
 description: Modreq plugin, similiar to an IRL ticketing system.
 commands: 
-  hello: 
-    description: returns "world!"
+  modreq: 
+    description: Submit a request to the staff. 
+  modqueue: 
+    description: Allows staff to see open tickets.
+  reqaccept: 
+    description: Allows staff to assign a ticket to themself.
+  reqresovle: 
+    description: Allows staff or submitter to close a ticket after they've resolved it. 
+  reqclose: 
+    description: Allows staff to close a ticket without resolution. Usefull for troll tickets. 
+  reqabandon:
+    description: Allows staff to resign from a ticket, putting it back in the queue. 
+  reqesc: 
+    description: Allows mods to escalate a ticket to admins. 
+  reqtp: 
+    description: Allows staff to teleport to the location the ticket was place at. 
+  reqnote: 
+    description: Allows staff or submitter to add a note to a ticket, usefull for extra information that may be required. 
+  reqstatus: 
+    description: Allows staff or submitter to see the status of a ticket. 
+  modstats: 
+    description: Shows some modreq information about a user. 
+  modmode: 
+    description: Toggles a variety of mod tool with one command. 
+   

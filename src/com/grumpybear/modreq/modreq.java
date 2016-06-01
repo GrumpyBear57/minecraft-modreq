@@ -25,35 +25,35 @@ public boolean onCommand(CommandSender sender, Command cmd, String label, String
 		sender.sendMessage("debug info");
 	}
 	
-	if(cmd.getName().equalsIgnoreCase("modaccept")) {
+	if(cmd.getName().equalsIgnoreCase("reqaccept")) {
 		sender.sendMessage("debug info");
 	}
 
-	if(cmd.getName().equalsIgnoreCase("modresolve")) {
+	if(cmd.getName().equalsIgnoreCase("reqresolve")) {
 		sender.sendMessage("debug info");
 	}
 
-	if(cmd.getName().equalsIgnoreCase("modclose")) {
+	if(cmd.getName().equalsIgnoreCase("reqclose")) {
 		sender.sendMessage("debug info");
 	}
 	
-	if(cmd.getName().equalsIgnoreCase("modabandon")) {
+	if(cmd.getName().equalsIgnoreCase("reqabandon")) {
 		sender.sendMessage("debug info");
 	}
 
-	if(cmd.getName().equalsIgnoreCase("modesc")) {
+	if(cmd.getName().equalsIgnoreCase("reqesc")) {
 		sender.sendMessage("debug info");
 	}
 
-	if(cmd.getName().equalsIgnoreCase("modtp")) {
+	if(cmd.getName().equalsIgnoreCase("reqtp")) {
 		sender.sendMessage("debug info");
 	}
 
-	if(cmd.getName().equalsIgnoreCase("modnote")) {
+	if(cmd.getName().equalsIgnoreCase("reqnote")) {
 		sender.sendMessage("debug info");
 	}
 
-	if(cmd.getName().equalsIgnoreCase("modstatus")) {
+	if(cmd.getName().equalsIgnoreCase("reqstatus")) {
 		sender.sendMessage("debug info");
 	}
 
