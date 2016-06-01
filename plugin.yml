@@ -4,9 +4,6 @@ version: 1.0
 author: GrumpyBear57
 description: Modreq plugin, similiar to an IRL ticketing system.
 commands: 
-  mr:
-    description: Information about the mod.
-    usage: /mr
   modreq: 
     description: Submit a request to the staff. 
     usage: /modreq [Request]
