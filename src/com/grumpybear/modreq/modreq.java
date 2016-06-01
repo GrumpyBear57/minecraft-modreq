@@ -84,6 +84,7 @@ public boolean onCommand(CommandSender sender, Command cmd, String label, String
 				sender.sendMessage(ChatColor.RED + "You don't have permission to perform that command!");
 			}
 		}
+		return true;
 	}
 	
 	if(cmd.getName().equalsIgnoreCase("modqueue")) {
