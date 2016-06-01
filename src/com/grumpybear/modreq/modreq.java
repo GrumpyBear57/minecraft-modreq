@@ -3,7 +3,10 @@ package com.grumpybear.modreq;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.event.Listener;
+import org.bukkit.event.EventHandler; 
+import org.bukkit.event.player.PlayerJoinEvent;
+
 import net.md_5.bungee.api.ChatColor;
 
 public class modreq extends JavaPlugin {
@@ -11,11 +14,19 @@ public class modreq extends JavaPlugin {
 @Override
 public void onEnable() {
 	getLogger().info("Successfully loaded modreq v1.0!");
+	getServer().getPluginManager().registerEvents(new staffJoinListener(), this);
 }
 
 @Override
 public void onDisable() {
 	getLogger().info("Unloading modreq v1.0...");
+}
+
+public class staffJoinListener implements Listener {
+	@EventHandler
+	public void onPlayerJoin(PlayerJoinEvent event) {
+		Bukkit.broadcastMessage("New request(s) in queue!");
+	}
 }
 
 public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
