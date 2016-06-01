@@ -77,15 +77,14 @@ public boolean onCommand(CommandSender sender, Command cmd, String label, String
 			Player player = (Player) sender; 
 			int ticketNumber = 42; //this is temporary until we get the request database going. 
 			// put the entirety of the request into one string.
+			// TODO SANITIZE THE USER INPUT 
 			if(player.hasPermission("modreq.newReq")) {
 				String request = "";
 				for(int i = 0; i < args.length; i++) {
 					if (i != args.length-1) {
-						String arg = args[i] + " ";
-						request = request + arg;
+						request += args[i] + " ";
 					}else{
-						String arg = args[i];
-						request = request + arg;
+						request += args[i];
 					}
 				}
 				// Tell the user the request has been submitted
