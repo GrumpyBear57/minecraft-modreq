@@ -18,7 +18,7 @@ public class modreq extends JavaPlugin {
 FileConfiguration config = getConfig();
 String version = "v1.0";
 String prefix = ChatColor.RED + "[" + ChatColor.GREEN + "Mod Request" + ChatColor.RED + "] " + ChatColor.GOLD;
-Boolean newRequests = true;
+Boolean newRequests = true; // this is temporary until we get the database
 	
 @Override
 public void onEnable() {
@@ -75,8 +75,26 @@ public boolean onCommand(CommandSender sender, Command cmd, String label, String
 			sender.sendMessage(ChatColor.GOLD + "To submit a request, do /modreq <request>");
 		}else{
 			Player player = (Player) sender; 
+			int ticketNumber = 42; //this is temporary until we get the request database going. 
+			// put the entirety of the request into one string.
 			if(player.hasPermission("modreq.newReq")) {
-				sender.sendMessage("has permission.");
+				String request = "";
+				for(int i = 0; i < args.length; i++) {
+					String arg = args[i] + " ";
+					request = request + arg;
+				}
+				// Tell the user the request has been submitted
+				sender.sendMessage(prefix + "Your request has been added to the queue. Your ticket number is " + ticketNumber + ".");
+				sender.sendMessage(ChatColor.GOLD + "Your request: '" + request + "'");
+				
+				// Inform the staff online that there's a new request in the queue
+				Player[] playersOnline = Bukkit.getServer().getOnlinePlayers().toArray(new Player[Bukkit.getServer().getOnlinePlayers().size()]);
+				for (int i = 0; i < playersOnline.length; i++) {
+					Player player1 = (Player) playersOnline[i];
+					if (player1.hasPermission("modreq.veiwQueue")) {
+						player1.sendMessage(prefix + ChatColor.GREEN + player.getDisplayName() + ChatColor.GOLD + " has submitted a new request!");
+					}
+				}
 			}else{
 				sender.sendMessage(ChatColor.RED + "You don't have permission to perform that command!");
 			}
