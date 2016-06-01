@@ -4,7 +4,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-
 import net.md_5.bungee.api.ChatColor;
 
 public class modreq extends JavaPlugin {
@@ -21,11 +20,15 @@ public void onDisable() {
 
 public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 	if(cmd.getName().equalsIgnoreCase("modreq")) {
-		Player player = (Player) sender;
-		if(player.hasPermission("modreq.newReq")) {
-			sender.sendMessage("has permission.");
+		if(!(sender instanceof Player)) {
+			sender.sendMessage("You must be a player to perform this command!");
 		}else{
-			sender.sendMessage(ChatColor.RED + "You don't have permission to perform that command!");
+			Player player = (Player) sender; 
+			if(player.hasPermission("modreq.newReq")) {
+				sender.sendMessage("has permission.");
+			}else{
+				sender.sendMessage(ChatColor.RED + "You don't have permission to perform that command!");
+			}
 		}
 	}
 	
@@ -39,20 +42,28 @@ public boolean onCommand(CommandSender sender, Command cmd, String label, String
 	}
 	
 	if(cmd.getName().equalsIgnoreCase("reqaccept")) {
-		Player player = (Player) sender;
-		if(player.hasPermission("modreq.newReq")) {
-			sender.sendMessage("has permission.");
+		if(!(sender instanceof Player)) {
+			sender.sendMessage("You must be a player to perform this command!");
 		}else{
-			sender.sendMessage(ChatColor.RED + "You don't have permission to perform that command!");
+			Player player = (Player) sender;
+			if(player.hasPermission("modreq.newReq")) {
+				sender.sendMessage("has permission.");
+			}else{
+				sender.sendMessage(ChatColor.RED + "You don't have permission to perform that command!");
+			}
 		}
 	}
 
 	if(cmd.getName().equalsIgnoreCase("reqresolve")) {
-		Player player = (Player) sender;
-		if(player.hasPermission("modreq.newReq")) {
-			sender.sendMessage("has permission.");
+		if(!(sender instanceof Player)) {
+			sender.sendMessage("You must be a player to perform this command!");
 		}else{
-			sender.sendMessage(ChatColor.RED + "You don't have permission to perform that command!");
+			Player player = (Player) sender;
+			if(player.hasPermission("modreq.newReq")) {
+				sender.sendMessage("has permission.");
+			}else{
+				sender.sendMessage(ChatColor.RED + "You don't have permission to perform that command!");
+			}
 		}
 	}
 
@@ -66,11 +77,15 @@ public boolean onCommand(CommandSender sender, Command cmd, String label, String
 	}
 	
 	if(cmd.getName().equalsIgnoreCase("reqabandon")) {
-		Player player = (Player) sender;
-		if(player.hasPermission("modreq.newReq")) {
-			sender.sendMessage("has permission.");
+		if(!(sender instanceof Player)) {
+			sender.sendMessage("You must be a player to perform this command!");
 		}else{
-			sender.sendMessage(ChatColor.RED + "You don't have permission to perform that command!");
+			Player player = (Player) sender;
+			if(player.hasPermission("modreq.newReq")) {
+				sender.sendMessage("has permission.");
+			}else{
+				sender.sendMessage(ChatColor.RED + "You don't have permission to perform that command!");
+			}
 		}
 	}
 
@@ -84,11 +99,15 @@ public boolean onCommand(CommandSender sender, Command cmd, String label, String
 	}
 
 	if(cmd.getName().equalsIgnoreCase("reqtp")) {
-		Player player = (Player) sender;
-		if(player.hasPermission("modreq.newReq")) {
-			sender.sendMessage("has permission.");
+		if(!(sender instanceof Player)) {
+			sender.sendMessage("You must be a player to perform this command!");
 		}else{
-			sender.sendMessage(ChatColor.RED + "You don't have permission to perform that command!");
+			Player player = (Player) sender;
+			if(player.hasPermission("modreq.newReq")) {
+				sender.sendMessage("has permission.");
+			}else{
+				sender.sendMessage(ChatColor.RED + "You don't have permission to perform that command!");
+			}
 		}
 	}
 
@@ -120,11 +139,15 @@ public boolean onCommand(CommandSender sender, Command cmd, String label, String
 	}
 
 	if(cmd.getName().equalsIgnoreCase("modmode")) {
-		Player player = (Player) sender;
-		if(player.hasPermission("modreq.newReq")) {
-			sender.sendMessage("has permission.");
+		if(!(sender instanceof Player)) {
+			sender.sendMessage("You must be a player to perform this command!");
 		}else{
-			sender.sendMessage(ChatColor.RED + "You don't have permission to perform that command!");
+			Player player = (Player) sender;
+			if(player.hasPermission("modreq.newReq")) {
+				sender.sendMessage("has permission.");
+			}else{
+				sender.sendMessage(ChatColor.RED + "You don't have permission to perform that command!");
+			}
 		}
 	}
 	return false;
