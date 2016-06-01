@@ -98,7 +98,7 @@ public boolean onCommand(CommandSender sender, Command cmd, String label, String
 			sender.sendMessage("You must be a player to perform this command!");
 		}else{
 			Player player = (Player) sender;
-			if(player.hasPermission("modreq.newReq")) {
+			if(player.hasPermission("modreq.reqAccept")) {
 				sender.sendMessage("has permission.");
 			}else{
 				sender.sendMessage(ChatColor.RED + "You don't have permission to perform that command!");
@@ -111,7 +111,7 @@ public boolean onCommand(CommandSender sender, Command cmd, String label, String
 			sender.sendMessage("You must be a player to perform this command!");
 		}else{
 			Player player = (Player) sender;
-			if(player.hasPermission("modreq.newReq")) {
+			if(player.hasPermission("modreq.reqAccept")) {
 				sender.sendMessage("has permission.");
 			}else{
 				sender.sendMessage(ChatColor.RED + "You don't have permission to perform that command!");
@@ -121,7 +121,7 @@ public boolean onCommand(CommandSender sender, Command cmd, String label, String
 
 	if(cmd.getName().equalsIgnoreCase("reqclose")) {
 		Player player = (Player) sender;
-		if(player.hasPermission("modreq.newReq")) {
+		if(player.hasPermission("modreq.reqClose")) {
 			sender.sendMessage("has permission.");
 		}else{
 			sender.sendMessage(ChatColor.RED + "You don't have permission to perform that command!");
@@ -133,7 +133,7 @@ public boolean onCommand(CommandSender sender, Command cmd, String label, String
 			sender.sendMessage("You must be a player to perform this command!");
 		}else{
 			Player player = (Player) sender;
-			if(player.hasPermission("modreq.newReq")) {
+			if(player.hasPermission("modreq.reqAccept")) {
 				sender.sendMessage("has permission.");
 			}else{
 				sender.sendMessage(ChatColor.RED + "You don't have permission to perform that command!");
@@ -143,7 +143,7 @@ public boolean onCommand(CommandSender sender, Command cmd, String label, String
 
 	if(cmd.getName().equalsIgnoreCase("reqesc")) {
 		Player player = (Player) sender;
-		if(player.hasPermission("modreq.newReq")) {
+		if(player.hasPermission("modreq.reqAccept")) {
 			sender.sendMessage("has permission.");
 		}else{
 			sender.sendMessage(ChatColor.RED + "You don't have permission to perform that command!");
@@ -155,7 +155,7 @@ public boolean onCommand(CommandSender sender, Command cmd, String label, String
 			sender.sendMessage("You must be a player to perform this command!");
 		}else{
 			Player player = (Player) sender;
-			if(player.hasPermission("modreq.newReq")) {
+			if(player.hasPermission("modreq.reqTeleport")) {
 				sender.sendMessage("has permission.");
 			}else{
 				sender.sendMessage(ChatColor.RED + "You don't have permission to perform that command!");
@@ -165,7 +165,7 @@ public boolean onCommand(CommandSender sender, Command cmd, String label, String
 
 	if(cmd.getName().equalsIgnoreCase("reqnote")) {
 		Player player = (Player) sender;
-		if(player.hasPermission("modreq.newReq")) {
+		if(player.hasPermission("modreq.reqAccept")) {
 			sender.sendMessage("has permission.");
 		}else{
 			sender.sendMessage(ChatColor.RED + "You don't have permission to perform that command!");
@@ -174,7 +174,7 @@ public boolean onCommand(CommandSender sender, Command cmd, String label, String
 
 	if(cmd.getName().equalsIgnoreCase("reqstatus")) {
 		Player player = (Player) sender;
-		if(player.hasPermission("modreq.newReq")) {
+		if(player.hasPermission("modreq.reqStatus")) {
 			sender.sendMessage("has permission.");
 		}else{
 			sender.sendMessage(ChatColor.RED + "You don't have permission to perform that command!");
@@ -183,7 +183,7 @@ public boolean onCommand(CommandSender sender, Command cmd, String label, String
 
 	if(cmd.getName().equalsIgnoreCase("modstats")) {
 		Player player = (Player) sender;
-		if(player.hasPermission("modreq.newReq")) {
+		if(player.hasPermission("modreq.modStats")) {
 			sender.sendMessage("has permission.");
 		}else{
 			sender.sendMessage(ChatColor.RED + "You don't have permission to perform that command!");
@@ -195,7 +195,7 @@ public boolean onCommand(CommandSender sender, Command cmd, String label, String
 			sender.sendMessage("You must be a player to perform this command!");
 		}else{
 			Player player = (Player) sender;
-			if(player.hasPermission("modreq.newReq")) {
+			if(player.hasPermission("modreq.modMode")) {
 				sender.sendMessage("has permission.");
 			}else{
 				sender.sendMessage(ChatColor.RED + "You don't have permission to perform that command!");
