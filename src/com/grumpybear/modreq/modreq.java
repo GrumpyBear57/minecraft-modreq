@@ -105,9 +105,13 @@ public boolean onCommand(CommandSender sender, Command cmd, String label, String
 	if(cmd.getName().equalsIgnoreCase("modqueue")) {
 		Player player = (Player) sender;
 		if(player.hasPermission("modreq.viewQueue")) {
-			sender.sendMessage(prefix + "New request(s) in queue!");
+			if (newRequests) {
+				sender.sendMessage(prefix + "New request(s) in the queue!");
+			}else{
+				sender.sendMessage(prefix + "No new requests in the queue.");
+			}
 		}else{
-			sender.sendMessage(ChatColor.RED + "You don't have permission to perform that command!");
+			// show the users open requests, if any.
 		}
 	}
 	
@@ -122,6 +126,7 @@ public boolean onCommand(CommandSender sender, Command cmd, String label, String
 				sender.sendMessage(ChatColor.RED + "You don't have permission to perform that command!");
 			}
 		}
+		return true;
 	}
 
 	if(cmd.getName().equalsIgnoreCase("reqresolve")) {
@@ -222,6 +227,7 @@ public boolean onCommand(CommandSender sender, Command cmd, String label, String
 	}
 	return false;
 }
-
 }
+
+
  
