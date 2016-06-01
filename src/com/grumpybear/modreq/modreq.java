@@ -17,6 +17,7 @@ import net.md_5.bungee.api.ChatColor;
 public class modreq extends JavaPlugin {
 FileConfiguration config = getConfig();
 String version = "v1.0";
+String prefix = ChatColor.RED + "[" + ChatColor.GREEN + "Mod Request" + ChatColor.RED + "] " + ChatColor.GOLD;
 Boolean newRequests = true;
 	
 @Override
@@ -45,6 +46,9 @@ public void onEnable() {
 	// Announce our presence
 	getLogger().info("Successfully loaded modreq " + version);
 	Bukkit.broadcastMessage("Successfully loaded modreq " + version);
+	if (newRequests) {
+		getLogger().info("New (request(s) in queue!");
+	}
 }
 
 @Override
@@ -57,8 +61,7 @@ public class staffJoinListener implements Listener {
 	public void onPlayerJoin(PlayerJoinEvent event) {
 		Player player = event.getPlayer();
 		if (player.hasPermission("modreq.viewQueue") && newRequests) {
-			player.sendMessage(ChatColor.RED + "[" + ChatColor.GREEN + "Mod Request" + ChatColor.RED + "] " + 
-			ChatColor.GOLD + "New (request(s) in queue!");
+			player.sendMessage(prefix + "New (request(s) in queue!");
 		}
 	}
 }
@@ -80,7 +83,7 @@ public boolean onCommand(CommandSender sender, Command cmd, String label, String
 	if(cmd.getName().equalsIgnoreCase("modqueue")) {
 		Player player = (Player) sender;
 		if(player.hasPermission("modreq.viewQueue")) {
-			sender.sendMessage("Items in queue");
+			sender.sendMessage(prefix + "New (request(s) in queue!");
 		}else{
 			sender.sendMessage(ChatColor.RED + "You don't have permission to perform that command!");
 		}
