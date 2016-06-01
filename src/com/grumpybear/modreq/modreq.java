@@ -80,8 +80,13 @@ public boolean onCommand(CommandSender sender, Command cmd, String label, String
 			if(player.hasPermission("modreq.newReq")) {
 				String request = "";
 				for(int i = 0; i < args.length; i++) {
-					String arg = args[i] + " ";
-					request = request + arg;
+					if (i != args.length-1) {
+						String arg = args[i] + " ";
+						request = request + arg;
+					}else{
+						String arg = args[i];
+						request = request + arg;
+					}
 				}
 				// Tell the user the request has been submitted
 				sender.sendMessage(prefix + "Your request has been added to the queue. Your ticket number is " + ticketNumber + ".");
