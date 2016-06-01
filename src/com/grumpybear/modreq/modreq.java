@@ -67,9 +67,15 @@ public class staffJoinListener implements Listener {
 }
 
 public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+	if(cmd.getName().equalsIgnoreCase("mr")) {
+		sender.sendMessage(prefix + ChatColor.GOLD + "This server is running Mod Request " + version + "by GrumpyBear57!");
+	}
+	
 	if(cmd.getName().equalsIgnoreCase("modreq")) {
 		if(!(sender instanceof Player)) {
 			sender.sendMessage("You must be a player to perform this command!");
+		}else if(args.length == 0) {
+			sender.sendMessage(ChatColor.RED + "You didn't enter any request!");
 		}else{
 			Player player = (Player) sender; 
 			if(player.hasPermission("modreq.newReq")) {
@@ -83,7 +89,7 @@ public boolean onCommand(CommandSender sender, Command cmd, String label, String
 	if(cmd.getName().equalsIgnoreCase("modqueue")) {
 		Player player = (Player) sender;
 		if(player.hasPermission("modreq.viewQueue")) {
-			sender.sendMessage(prefix + "New (request(s) in queue!");
+			sender.sendMessage(prefix + "New request(s) in queue!");
 		}else{
 			sender.sendMessage(ChatColor.RED + "You don't have permission to perform that command!");
 		}
