@@ -3,6 +3,7 @@ Plugin for minecraft that will add mod requests to the game (basically a ticketi
 
 Idea inspired by other modreq plugins, but this plugin contains all my own work, nothing copied.
 
+#License 
 Copyright 2016 GrumpyBear57 (Nathan Ford)
 
    Licensed under the Apache License, Version 2.0 (the "License");
