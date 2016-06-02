@@ -1,6 +1,11 @@
 package com.grumpybear.modreq;
 
 import java.io.File;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
+import com.mysql.jdbc.Connection;
+import com.mysql.jdbc.Statement;
 
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.Bukkit;
@@ -15,10 +20,16 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import net.md_5.bungee.api.ChatColor;
 
 public class modreq extends JavaPlugin {
+
 FileConfiguration config = getConfig();
 String version = "v1.0";
 String prefix = ChatColor.RED + "[" + ChatColor.GREEN + "Mod Request" + ChatColor.RED + "] " + ChatColor.GOLD;
 Boolean newRequests = true; // this is temporary until we get the database
+
+// database things
+private Connection connection; 
+private String host, database, username, password;
+private int port;
 	
 @Override
 public void onEnable() {
@@ -33,13 +44,33 @@ public void onEnable() {
 		File file = new File(getDataFolder(), "config.yml");
 		if (!file.exists()) {
 			getLogger().info("Missing config file, creating!");
-			config.addDefault("test", true);
+			config.addDefault("host", "localhost");
+			config.addDefault("port", 3306);
+			config.addDefault("database", "requests");
+			config.addDefault("username", "username");
+			config.addDefault("password", "password");
 			config.options().copyDefaults(true);
 			saveConfig();
 		}else{
 			getLogger().info("Config found, loading!");
 		}
 	}catch(Exception e){
+		e.printStackTrace();
+	}
+	
+	// Connect to the database 
+	host = config.getString("host");
+	port = config.getInt("port");
+	database = config.getString("database");
+	username = config.getString("username");
+	password = config.getString("password");
+	
+	try {
+		openConnection();
+		Statement statement = connection.createStatement();
+	} catch (ClassNotFoundException e) {
+		e.printStackTrace();
+	} catch (SQLException e ) {
 		e.printStackTrace();
 	}
 	
@@ -54,6 +85,20 @@ public void onEnable() {
 @Override
 public void onDisable() {
 	getLogger().info("Unloading modreq " + version);
+}
+
+public void openConnection() throws SQLException, ClassNotFoundException {
+	if (connection != null && !connection.isClosed()) {
+		return;
+	}
+	
+	synchronized (this) {
+		if (connection != null && !connection.isClosed()) {
+			return;
+		}
+		Class.forName("com.mysql.jdbc.Driver");
+		connection = DriverManager.getConnection("jbdc:mysql://" + this.host + ":" +  this.port + "/" + this.database, this.username, this.password);
+	}
 }
 
 public class staffJoinListener implements Listener {
@@ -115,7 +160,7 @@ public boolean onCommand(CommandSender sender, Command cmd, String label, String
 				sender.sendMessage(prefix + "No new requests in the queue.");
 			}
 		}else{
-			// show the users open requests, if any.
+			// show the user their open requests, if any.
 		}
 	}
 	
