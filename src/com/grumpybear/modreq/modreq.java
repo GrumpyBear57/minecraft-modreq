@@ -73,6 +73,7 @@ public boolean onCommand(CommandSender sender, Command cmd, String label, String
 		}else if(args.length == 0) {
 			sender.sendMessage(prefix + ChatColor.GOLD + "This server is running " + ChatColor.GREEN + "Mod Request " + version + ChatColor.GOLD + " by GrumpyBear57!");
 			sender.sendMessage(ChatColor.GOLD + "To submit a request, do /modreq <request>");
+			sender.sendMessage("Licensed under Apache v2.0, Copyright 2016 GrumpyBear57");
 		}else{
 			Player player = (Player) sender; 
 			int ticketNumber = 42; //this is temporary until we get the request database going. 
