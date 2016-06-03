@@ -24,7 +24,11 @@ import net.md_5.bungee.api.ChatColor;
 public class modreq extends JavaPlugin {
 
 FileConfiguration config = getConfig();
-String version = "v1.0";
+String version = "v1.0.0";
+// version explanation x.y.z
+// x = mc version (increases when we update to new mc version)
+// y = main version (increases when we make significant update to plugin, like new command)
+// z = fix version (increases when we make a minor change, like a bugfix)
 String prefix = ChatColor.RED + "[" + ChatColor.GREEN + "Mod Request" + ChatColor.RED + "] " + ChatColor.GOLD;
 Boolean newRequests = true; // this is temporary until we get the database
 
@@ -170,6 +174,7 @@ public boolean onCommand(CommandSender sender, Command cmd, String label, String
 		}else if(args.length == 0) {
 			sender.sendMessage(prefix + ChatColor.GOLD + "This server is running " + ChatColor.GREEN + "Mod Request " + version + ChatColor.GOLD + " by GrumpyBear57!");
 			sender.sendMessage(ChatColor.GOLD + "To submit a request, do /modreq <request>");
+			sender.sendMessage("Licensed under Apache v2.0, Copyright 2016 GrumpyBear57");
 		}else{
 			Player player = (Player) sender; 
 			int ticketNumber = 42; //this is temporary until we get the request database going. 
@@ -247,6 +252,7 @@ public boolean onCommand(CommandSender sender, Command cmd, String label, String
 		Player player = (Player) sender;
 		if(player.hasPermission("modreq.reqClose")) {
 			sender.sendMessage("has permission.");
+			//TODO add penalty for players abusing the modreq 
 		}else{
 			sender.sendMessage(ChatColor.RED + "You don't have permission to perform that command!");
 		}
@@ -323,6 +329,19 @@ public boolean onCommand(CommandSender sender, Command cmd, String label, String
 				sender.sendMessage("has permission.");
 			}else{
 				sender.sendMessage(ChatColor.RED + "You don't have permission to perform that command!");
+			}
+		}
+	}
+	if (cmd.getName().equalsIgnoreCase("modreport")) {
+		if (!(sender instanceof Player)) {
+			sender.sendMessage("You must be a player to perform this command!");
+		}else{
+			Player player = (Player) sender;
+			if (player.hasPermission("modreq.newReq")) {
+				sender.sendMessage("has permission.");
+				//TODO add penalty for a player abusing the report system (three stikes?)
+			}else{
+				sender.sendMessage(ChatColor.RED + "You don't have permission to permfor that commmand!");
 			}
 		}
 	}
