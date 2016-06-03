@@ -5,6 +5,8 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 import com.mysql.jdbc.Connection;
+import com.mysql.jdbc.DatabaseMetaData;
+import com.mysql.jdbc.ResultSet;
 import com.mysql.jdbc.Statement;
 
 import org.bukkit.plugin.java.JavaPlugin;
@@ -28,7 +30,7 @@ Boolean newRequests = true; // this is temporary until we get the database
 
 // database things
 private Connection connection; 
-private String host, database, username, password;
+private String host, database, username, password, table;
 private int port;
 	
 @Override
@@ -44,11 +46,14 @@ public void onEnable() {
 		File file = new File(getDataFolder(), "config.yml");
 		if (!file.exists()) {
 			getLogger().info("Missing config file, creating!");
-			config.addDefault("host", "localhost");
-			config.addDefault("port", 3306);
-			config.addDefault("database", "requests");
-			config.addDefault("username", "username");
-			config.addDefault("password", "password");
+			config.addDefault("db-host", "localhost");
+			config.addDefault("db-port", 3306);
+			config.addDefault("db-name", "requests");
+			config.addDefault("db-table", "requests");
+			config.addDefault("db-username", "username");
+			config.addDefault("db-password", "password");
+			config.addDefault("max-notes", "10");
+			//config.addDefault("//set this BEFORE the plugin creates a table for itself in your database!!");
 			config.options().copyDefaults(true);
 			saveConfig();
 		}else{
@@ -59,18 +64,32 @@ public void onEnable() {
 	}
 	
 	// Connect to the database 
-	host = config.getString("host");
-	port = config.getInt("port");
-	database = config.getString("database");
-	username = config.getString("username");
-	password = config.getString("password");
+	host = config.getString("db-host");
+	port = config.getInt("db-port");
+	database = config.getString("db-name");
+	username = config.getString("db-username");
+	password = config.getString("db-password");
 	
 	try {
 		openConnection();
-		Statement statement = connection.createStatement();
+		Statement statement = (Statement) connection.createStatement();
 	} catch (ClassNotFoundException e) {
 		e.printStackTrace();
 	} catch (SQLException e ) {
+		e.printStackTrace();
+	}
+	// test database to see if it's got a table for us, if not create it. 
+	table = config.getString("db-table");
+	try {
+		DatabaseMetaData dbm = (DatabaseMetaData) connection.getMetaData();
+		ResultSet checkTable = (ResultSet) dbm.getTables(null, null, this.table, null);
+		if (!(checkTable.next())) {
+			Statement statement = (Statement) connection.createStatement();
+			statement = (Statement) connection.createStatement();
+			String createTable  = "CREATE TABLE " + this.table; //improve this later
+			//TODO finish table creation
+		}
+	} catch (SQLException e) {
 		e.printStackTrace();
 	}
 	
@@ -97,7 +116,7 @@ public void openConnection() throws SQLException, ClassNotFoundException {
 			return;
 		}
 		Class.forName("com.mysql.jdbc.Driver");
-		connection = DriverManager.getConnection("jbdc:mysql://" + this.host + ":" +  this.port + "/" + this.database, this.username, this.password);
+		connection = (Connection) DriverManager.getConnection("jbdc:mysql://" + this.host + ":" +  this.port + "/" + this.database, this.username, this.password);
 	}
 }
 
