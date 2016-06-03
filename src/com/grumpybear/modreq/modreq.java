@@ -16,7 +16,11 @@ import net.md_5.bungee.api.ChatColor;
 
 public class modreq extends JavaPlugin {
 FileConfiguration config = getConfig();
-String version = "v1.0";
+String version = "v1.0.0";
+// version explanation x.y.z
+// x = mc version (increases when we update to new mc version)
+// y = main version (increases when we make significant update to plugin, like new command)
+// z = fix version (increases when we make a minor change, like a bugfix)
 String prefix = ChatColor.RED + "[" + ChatColor.GREEN + "Mod Request" + ChatColor.RED + "] " + ChatColor.GOLD;
 Boolean newRequests = true; // this is temporary until we get the database
 	
