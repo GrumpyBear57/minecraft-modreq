@@ -155,6 +155,7 @@ public boolean onCommand(CommandSender sender, Command cmd, String label, String
 		Player player = (Player) sender;
 		if(player.hasPermission("modreq.reqClose")) {
 			sender.sendMessage("has permission.");
+			//TODO add penalty for players abusing the modreq 
 		}else{
 			sender.sendMessage(ChatColor.RED + "You don't have permission to perform that command!");
 		}
@@ -231,6 +232,19 @@ public boolean onCommand(CommandSender sender, Command cmd, String label, String
 				sender.sendMessage("has permission.");
 			}else{
 				sender.sendMessage(ChatColor.RED + "You don't have permission to perform that command!");
+			}
+		}
+	}
+	if (cmd.getName().equalsIgnoreCase("modreport")) {
+		if (!(sender instanceof Player)) {
+			sender.sendMessage("You must be a player to perform this command!");
+		}else{
+			Player player = (Player) sender;
+			if (player.hasPermission("modreq.newReq")) {
+				sender.sendMessage("has permission.");
+				//TODO add penalty for a player abusing the report system (three stikes?)
+			}else{
+				sender.sendMessage(ChatColor.RED + "You don't have permission to permfor that commmand!");
 			}
 		}
 	}

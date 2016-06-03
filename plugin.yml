@@ -1,6 +1,6 @@
 name: Mod-Request
 main: com.grumpybear.modreq.modreq
-version: 1.0
+version: 1.0.0
 author: GrumpyBear57
 description: Modreq plugin, similiar to an IRL ticketing system.
 commands: 
@@ -40,3 +40,6 @@ commands:
   modmode: 
     description: Toggles a variety of mod tool with one command. 
     usage:  /modmode 
+  modreport: 
+    description: Reports a staff member for abuse. 
+    usage: /modreport [Reason]
