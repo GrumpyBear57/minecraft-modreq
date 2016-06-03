@@ -17,7 +17,7 @@ commands:
     description: Allows staff or submitter to close a ticket after they've resolved it.
     usage: /reqresolve <Note to user>
   reqclose: 
-    description: Allows staff to close a ticket without resolution. Usefull for troll tickets.
+    description: Allows staff to close a ticket without resolution. Useful for troll tickets.
     usage: /reqclose <Note to user> 
   reqabandon:
     description: Allows staff to resign from a ticket, putting it back in the queue.
@@ -29,7 +29,7 @@ commands:
     description: Allows staff to teleport to the location the ticket was place at.
     usage: /reqtp [Ticket ID]
   reqnote: 
-    description: Allows staff or submitter to add a note to a ticket, usefull for extra information that may be required.
+    description: Allows staff or submitter to add a note to a ticket, useful for extra information that may be required.
     usage: /reqnote [Note]
   reqstatus: 
     description: Allows staff or submitter to see the status of a ticket.
