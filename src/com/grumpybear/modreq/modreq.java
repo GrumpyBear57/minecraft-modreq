@@ -31,7 +31,7 @@ Boolean newRequests = true; // this is temporary until we get the database
 // database things
 private Connection connection; 
 private String host, database, username, password, table;
-private int port;
+private int port, maxNotes;
 	
 @Override
 public void onEnable() {
@@ -72,26 +72,59 @@ public void onEnable() {
 	
 	try {
 		openConnection();
-		Statement statement = (Statement) connection.createStatement();
 	} catch (ClassNotFoundException e) {
 		e.printStackTrace();
 	} catch (SQLException e ) {
 		e.printStackTrace();
 	}
+	
 	// test database to see if it's got a table for us, if not create it. 
 	table = config.getString("db-table");
+	maxNotes = config.getInt("max-notes");
+	
+	getLogger().info("Checking database...");
+	Statement statement = null;
+	
 	try {
 		DatabaseMetaData dbm = (DatabaseMetaData) connection.getMetaData();
 		ResultSet checkTable = (ResultSet) dbm.getTables(null, null, this.table, null);
 		if (!(checkTable.next())) {
-			Statement statement = (Statement) connection.createStatement();
+			getLogger().info("Database table not found, creating one...");
 			statement = (Statement) connection.createStatement();
-			String createTable  = "CREATE TABLE " + this.table; //improve this later
-			//TODO finish table creation
+			String createTable  = "CREATE TABLE requests " +
+								  "(id INT NOT NULL AUTO_INCREMENT, " +
+								  "user VARCHAR(32) NOT NULL, "+
+								  "status VARCHAR(10) NOT NULL, " +
+								  "assignee VARCHAR(32) NOT NULL, " +
+								  "time_submitted DATETIME GENERATED ALWAYS AS (NOW()) VIRTUAL, " +
+								  "time_resolved DATETIME NULL, " +
+								  "location_x DOUBLE NOT NULL, " +
+								  "location_y DOUBLE NOT NULL, " +
+								  "location_z DOUBLE NOT NULL, " +
+								  "location_yaw FLOAT NOT NULL, " +
+								  "location_pitch FLOAT NOT NULL, " +
+								  "request VARCHAR(100) NOT NULL, " +
+								  "note_x VARCHAR(100) NULL, " + //TODO add a loop to create as many note rows as the user configs 
+								  "resolution VARCHAR(100) NULL, " +
+								  "escalated TINYINT NULL, " +
+								  "PRIMARY KEY (id)) ";
+			statement.executeUpdate(createTable);
+			getLogger().info("Database table created!");
+			
 		}
 	} catch (SQLException e) {
 		e.printStackTrace();
-	}
+	} catch (Exception e) {
+		e.printStackTrace();
+	} finally {
+		try {
+			if(statement != null) {
+				connection.close();
+			}
+		}catch (SQLException e){
+			e.printStackTrace();
+			}
+		}
 	
 	// Announce our presence
 	getLogger().info("Successfully loaded modreq " + version);
