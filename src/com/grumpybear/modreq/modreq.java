@@ -1,18 +1,15 @@
 package com.grumpybear.modreq;
 
+import java.beans.PropertyVetoException;
 import java.io.File;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 
-import com.mysql.jdbc.Connection;
-import com.mysql.jdbc.DatabaseMetaData;
-import com.mysql.jdbc.ResultSet;
-import com.mysql.jdbc.Statement;
+import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -33,12 +30,17 @@ String prefix = ChatColor.RED + "[" + ChatColor.GREEN + "Mod Request" + ChatColo
 Boolean newRequests = true; // this is temporary until we get the database
 
 // database things
-private Connection connection; 
-private String host, database, username, password, table;
-private int port, maxNotes;
-	
+private int maxNotes;
+
+private final ComboPooledDataSource dataSource = new ComboPooledDataSource();
+
 @Override
 public void onEnable() {
+	// save dependenies 
+	saveResource("c3p0-0.9.5.2.jar", true);
+	saveResource("mchange-commons-java-0.2.11.jar", true);
+	saveResource("mysql-connector-java-5.0.8-bin.jar", true);
+	
 	// Enable listeners
 	getServer().getPluginManager().registerEvents(new staffJoinListener(), this);
 	
@@ -50,14 +52,16 @@ public void onEnable() {
 		File file = new File(getDataFolder(), "config.yml");
 		if (!file.exists()) {
 			getLogger().info("Missing config file, creating!");
-			config.addDefault("db-host", "localhost");
-			config.addDefault("db-port", 3306);
-			config.addDefault("db-name", "requests");
-			config.addDefault("db-table", "requests");
-			config.addDefault("db-username", "username");
-			config.addDefault("db-password", "password");
+			config.addDefault("database.driverClass", "com.mysql.jbdc.Driver");
+			config.addDefault("database.jbdcUrl", "jbdc:mysql://<host>:<port>/<database>");
+			config.addDefault("database.host", "locahost");
+			config.addDefault("database.port", "3306");
+			config.addDefault("database.database", "database");
+			config.addDefault("database.username", "username");
+			config.addDefault("database.password", "password");
+			config.addDefault("database.checkoutTime", "5000");		
 			config.addDefault("max-notes", "10");
-			//config.addDefault("//set this BEFORE the plugin creates a table for itself in your database!!");
+			//TODO add a config note that you should set the max-notes before the server creates a table. 
 			config.options().copyDefaults(true);
 			saveConfig();
 		}else{
@@ -67,68 +71,29 @@ public void onEnable() {
 		e.printStackTrace();
 	}
 	
-	// Connect to the database 
-	host = config.getString("db-host");
-	port = config.getInt("db-port");
-	database = config.getString("db-name");
-	username = config.getString("db-username");
-	password = config.getString("db-password");
+	// Database vars 
+	ConfigurationSection databaseSection = getConfig().getConfigurationSection("database");
+	String driverClass = databaseSection.getString("driverClass");
+	String jbdcUrl = databaseSection.getString("jbdcUrl");
+	String host = databaseSection.getString("host");
+	String port = databaseSection.getString("port");
+	String database = databaseSection.getString("database");
+	String username = databaseSection.getString("username");
+	String password = databaseSection.getString("password");
+	int checkoutTime = databaseSection.getInt("checkoutTime");
 	
+	// try for exceptions 
 	try {
-		openConnection();
-	} catch (ClassNotFoundException e) {
-		e.printStackTrace();
-	} catch (SQLException e ) {
+		dataSource.setDriverClass(driverClass);
+	} catch (PropertyVetoException e) {
 		e.printStackTrace();
 	}
 	
-	// test database to see if it's got a table for us, if not create it. 
-	table = config.getString("db-table");
-	maxNotes = config.getInt("max-notes");
-	
-	getLogger().info("Checking database...");
-	Statement statement = null;
-	
-	try {
-		DatabaseMetaData dbm = (DatabaseMetaData) connection.getMetaData();
-		ResultSet checkTable = (ResultSet) dbm.getTables(null, null, this.table, null);
-		if (!(checkTable.next())) {
-			getLogger().info("Database table not found, creating one...");
-			statement = (Statement) connection.createStatement();
-			String createTable  = "CREATE TABLE requests " +
-								  "(id INT NOT NULL AUTO_INCREMENT, " +
-								  "user VARCHAR(32) NOT NULL, "+
-								  "status VARCHAR(10) NOT NULL, " +
-								  "assignee VARCHAR(32) NOT NULL, " +
-								  "time_submitted DATETIME GENERATED ALWAYS AS (NOW()) VIRTUAL, " +
-								  "time_resolved DATETIME NULL, " +
-								  "location_x DOUBLE NOT NULL, " +
-								  "location_y DOUBLE NOT NULL, " +
-								  "location_z DOUBLE NOT NULL, " +
-								  "location_yaw FLOAT NOT NULL, " +
-								  "location_pitch FLOAT NOT NULL, " +
-								  "request VARCHAR(100) NOT NULL, " +
-								  "note_x VARCHAR(100) NULL, " + //TODO add a loop to create as many note rows as the user configs 
-								  "resolution VARCHAR(100) NULL, " +
-								  "escalated TINYINT NULL, " +
-								  "PRIMARY KEY (id)) ";
-			statement.executeUpdate(createTable);
-			getLogger().info("Database table created!");
-			
-		}
-	} catch (SQLException e) {
-		e.printStackTrace();
-	} catch (Exception e) {
-		e.printStackTrace();
-	} finally {
-		try {
-			if(statement != null) {
-				connection.close();
-			}
-		}catch (SQLException e){
-			e.printStackTrace();
-			}
-		}
+	// set datasources
+	dataSource.setJdbcUrl(jbdcUrl.replace("<host>", host).replace("<port>", port).replace("<database>", database));
+    dataSource.setUser(username);
+    dataSource.setPassword(password);
+    dataSource.setCheckoutTimeout(checkoutTime);
 	
 	// Announce our presence
 	getLogger().info("Successfully loaded modreq " + version);
@@ -141,20 +106,7 @@ public void onEnable() {
 @Override
 public void onDisable() {
 	getLogger().info("Unloading modreq " + version);
-}
-
-public void openConnection() throws SQLException, ClassNotFoundException {
-	if (connection != null && !connection.isClosed()) {
-		return;
-	}
-	
-	synchronized (this) {
-		if (connection != null && !connection.isClosed()) {
-			return;
-		}
-		Class.forName("com.mysql.jdbc.Driver");
-		connection = (Connection) DriverManager.getConnection("jbdc:mysql://" + this.host + ":" +  this.port + "/" + this.database, this.username, this.password);
-	}
+	dataSource.close();
 }
 
 public class staffJoinListener implements Listener {
@@ -348,6 +300,3 @@ public boolean onCommand(CommandSender sender, Command cmd, String label, String
 	return false;
 }
 }
-
-
- 
