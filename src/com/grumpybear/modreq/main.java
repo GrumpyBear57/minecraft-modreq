@@ -2,125 +2,89 @@ package com.grumpybear.modreq;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
-public class main extends JavaPlugin {
+public class main extends JavaPlugin implements Listener {
 	
-	private SQLManager sql;
+	private HikariDataSource hikari;
 	
 	@Override
 	public void onEnable() {
-		initDatabase();
+		connectDB();
 	}
 	
 	@Override
 	public void onDisable() {
-		sql.onDisable();
 	}
 	
-	private void initDatabase() {
-		sql = new SQLManager(this);
+	public void connectDB() {
+		String address = getConfig().getString("Database.Address");
+		String name = getConfig().getString("Database.Name");
+		String username = getConfig().getString("Database.Username");
+		String password = getConfig().getString("Database.Password");
+		
+		hikari = new HikariDataSource();
+		hikari.setMaximumPoolSize(8);
+		hikari.setDataSourceClassName("com.mysql.jbdc.jbdc2.optional.MysqlDataSource");
+		hikari.addDataSourceProperty("serverName", address);
+		hikari.addDataSourceProperty("port", 3306);
+		hikari.addDataSourceProperty("databaseName", name);
+		hikari.addDataSourceProperty("user", username);
+		hikari.addDataSourceProperty("password", password);
 	}
-	
-	public SQLManager getSQLManager() {
-		return sql;
-	}
-	
-	public class ConnectionPoolManager {
 
-		private final main plugin;
+	public void createTable() {
+		Connection connection = null;
+		String createTable = "CREATE TABLE IF NOT EXISTS requests " +
+				  "(id INT NOT NULL AUTO_INCREMENT, " +
+				  "user VARCHAR(32) NOT NULL, "+
+				  "status VARCHAR(10) NOT NULL, " +
+				  "assignee VARCHAR(32) NOT NULL, " +
+				  "time_submitted DATETIME GENERATED ALWAYS AS (NOW()) VIRTUAL, " +
+				  "time_resolved DATETIME NULL, " +
+				  "location_x DOUBLE NOT NULL, " +
+				  "location_y DOUBLE NOT NULL, " +
+				  "location_z DOUBLE NOT NULL, " +
+				  "location_yaw FLOAT NOT NULL, " +
+				  "location_pitch FLOAT NOT NULL, " +
+				  "request VARCHAR(100) NOT NULL, " +
+				  "note_x VARCHAR(100) NULL, " + //TODO figure out a way to get this to create as many note colums as config specifies
+				  "resolution VARCHAR(100) NULL, " +
+				  "escalated TINYINT NULL, " +
+				  "PRIMARY KEY (id)) ";
 		
-		private HikariDataSource dataSource;
-		private String hostname, port, database, username, password, testQuery;
-		private int minConnections, maxConnections;
-		private long connectionTimeout;
+		PreparedStatement p = null;
 		
-		public ConnectionPoolManager(main plugin) {
-			this.plugin = plugin;
-			init();
-			setupPool();
-		}
-		
-		private void init() {
-			hostname = plugin.getConfig().getString("sql.hostname");
-	        port = plugin.getConfig().getString("sql.port");
-	        database = plugin.getConfig().getString("sql.database");
-	        username = plugin.getConfig().getString("sql.username");
-	        password = plugin.getConfig().getString("sql.password");
-	        minConnections = plugin.getConfig().getSQLPoolMinConnections();
-	        maxConnections = plugin.getConfig().getSQLPoolMaxConnections();
-	        connectionTimeout = plugin.getConfig().getSQLPoolConnectionTimeoutMillis();
-	        testQuery = plugin.getConfig().getSQLPoolTestQuery();
-		}
-		
-		private void setupPool() {
-			HikariConfig config = new HikariConfig();
-			config.setJdbcUrl("jbdc:mysql://" + hostname + ":" + port + "/" + database);
-			config.setDriverClassName("com.mysql.jbdc.Driver");
-			config.setUsername(username);
-			config.setPassword(password);
-			config.setMinimumIdle(minConnections);
-			config.setMaximumPoolSize(maxConnections);
-			config.setConnectionTimeout(connectionTimeout);
-			config.setConnectionTestQuery(testQuery);
-			dataSource = new HikariDataSource(config);
-		}
-		
-		public Connection getConnection() throws SQLException {
-			return dataSource.getConnection();
-		}
-		
-		public void close(Connection conn, PreparedStatement ps, ResultSet res) {
-			if (conn != null) try { conn.close(); } catch (SQLException ignored) {}
-			if (ps != null) try { ps.close(); } catch (SQLException ignored) {} 
-			if (res != null) try { res.close(); } catch (SQLException ignored) {} 
-		}
-		
-		public void closePool() {
-			if (dataSource != null && !dataSource.isClosed()) dataSource.close();
-		}
-		
-	}
-	
-	public class SQLManager {
-
-		private HikariDataSource dataSource;
-		private final main plugin;
-		private final ConnectionPoolManager pool;
-		
-		public SQLManager(main plugin) {
-			this.plugin = plugin;
-			pool = new ConnectionPoolManager(plugin);
-			makeTable();
-		}
-		
-		private void makeTable() {
-			Connection conn = null;
-			PreparedStatement ps = null;
-			try {
-				conn = dataSource.getConnection();
-				ps = conn.prepareStatement("CREATE TABLE IF NOT EXISTS 'Test' " + "(" + "UUID varchar(30)" + ")");
-				ps.executeUpdate();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			} finally {
-				pool.close(conn, ps, null);
+		try {
+			connection = hikari.getConnection();
+			p = connection.prepareStatement(createTable);
+			p.execute();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			if(connection != null) {
+				try {
+					connection.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+			
+			if (p != null) {
+				try {
+					p.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
 			}
 			
 		}
-		
-		public void onDisable() {
-			pool.closePool();
-		}
-
 	}
-
 	
 }
 
