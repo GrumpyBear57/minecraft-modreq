@@ -1,2 +1,0 @@
-Manifest-Version: 1.0
-Class-Path: minecraft-modreq/c3p0-0.9.5.2.jar minecraft-modreq/mchange-commons-java-0.2.11.jar minecraft-modreq/mysql-connector-java-5.0.8-bin.jar
