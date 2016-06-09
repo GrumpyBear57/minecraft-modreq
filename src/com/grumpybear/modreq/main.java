@@ -246,12 +246,12 @@ public class main extends JavaPlugin implements Listener {
 	public class commandModqueue implements CommandExecutor {
 		@Override 
 		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-			if (!(args.length == 0)) {
-				sender.sendMessage(RED + "This command doesn't take arguments!");
-			} else {
-				PreparedStatement p = null;
-				Player player = (Player) sender;
-				if (player.hasPermission("modreq.viewQueue")) {
+			PreparedStatement p = null;
+			Player player = (Player) sender;
+			if (player.hasPermission("modreq.viewQueue")) {
+				if (!(args.length == 0)) {
+					sender.sendMessage(RED + "This command doesn't take arguements!");
+				} else {
 					String query = "SELECT id,name,time_submitted FROM requests WHERE status='OPEN'";
 					try {
 						connection = hikari.getConnection();
@@ -284,7 +284,11 @@ public class main extends JavaPlugin implements Listener {
 							}
 						}
 					}
-				} else if (player.hasPermission("modreq.admin")) {
+				}
+			} else if (player.hasPermission("modreq.admin")) {
+				if (!(args.length == 0)) {
+					sender.sendMessage(RED + "This command doesn't take arguements!");
+				} else {
 					String query = "SELECT id,name,status,time_submitted FROM requests WHERE status IN ('OPEN', 'PENDING', 'ESCALATED')";
 					try {
 						connection = hikari.getConnection();
@@ -317,9 +321,9 @@ public class main extends JavaPlugin implements Listener {
 							}
 						}
 					}
-				} else {
-					sender.sendMessage(noPerm);
 				}
+			} else {
+				sender.sendMessage(noPerm);
 			}
 			return true;
 		}
