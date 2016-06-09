@@ -328,25 +328,17 @@ public class main extends JavaPlugin implements Listener {
 	public class commandReqaccept implements CommandExecutor {
 		@Override
 		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-			if (args.length > 1) {
-				sender.sendMessage(RED + "Please enter a valid request ID!");
-			} else {
-				if (isInt(args[0])){
-					Player player = (Player) sender;
-					if (player.hasPermission("modreq.reqaccept")) {
-						if (!(sender instanceof Player)) { 
-							sender.sendMessage(notPlayer);
-						} else if (args.length == 0) {
-							sender.sendMessage(prefix + RED + "You need to specify a request ID!");
-						} else {
-							//TODO get the id the user specified, check the database for that id. if it exists and is open, assign it to sender
-						}
-					} else {
-						sender.sendMessage(noPerm);
-					}
-				} else {
+			Player player = (Player) sender; 
+			if (player.hasPermission("modreq.reqaccept")){
+				if ((!(isInt(args[0]))) || args.length == 0 || args.length > 1){
 					sender.sendMessage(RED + "Please enter a valid request ID!");
+				} else if (!(sender instanceof Player)) {
+					sender.sendMessage(notPlayer);
+				} else {
+					//TODO get the id the user specified, check the database for that id. if it exists and is open, assign it to sender
 				}
+			} else {
+				sender.sendMessage(noPerm);
 			}
 			return true;
 		}
