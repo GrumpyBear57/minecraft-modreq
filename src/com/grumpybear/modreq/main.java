@@ -163,6 +163,15 @@ public class main extends JavaPlugin implements Listener {
 		}
 	}
 	
+	public static boolean isInt(String s) {
+		try {
+			Integer.parseInt(s);
+		} catch (NumberFormatException nfe) {
+			return false;
+		}
+		return true;
+	}
+	
 	public class commandModreq implements CommandExecutor {
 		@Override
 		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -237,76 +246,80 @@ public class main extends JavaPlugin implements Listener {
 	public class commandModqueue implements CommandExecutor {
 		@Override 
 		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-			PreparedStatement p = null;
-			Player player = (Player) sender;
-			if (player.hasPermission("modreq.viewQueue")) {
-				String query = "SELECT id,name,time_submitted FROM requests WHERE status='OPEN'";
-				try {
-					connection = hikari.getConnection();
-					p = connection.prepareStatement(query);
-					ResultSet rs = p.executeQuery();
-					while (rs.next()) {
-						boolean hasRows = true;
-						//TODO get data from query to send back to command executor
-						
-						if (!hasRows) {
-							sender.sendMessage(prefix + "There are no open tickets!");
-						}
-					}
-				} catch (SQLException e) {
-					e.printStackTrace();
-				} finally {
-					if(connection != null) {
-						try {
-							connection.close();
-						} catch (SQLException e) {
-							e.printStackTrace();
-						}
-					}
-
-					if (p != null) {
-						try {
-							p.close();
-						} catch (SQLException e) {
-							e.printStackTrace();
-						}
-					}
-				}
-			} else if (player.hasPermission("modreq.admin")) {
-				String query = "SELECT id,name,status,time_submitted FROM requests WHERE status IN ('OPEN', 'PENDING', 'ESCALATED')";
-				try {
-					connection = hikari.getConnection();
-					p = connection.prepareStatement(query);
-					ResultSet rs = p.executeQuery();
-					while (rs.next()) {
-						boolean hasRows = true; 
-						//TODO get data from query to send back to command executor
-						
-						if (!hasRows) {
-							sender.sendMessage(prefix + "There are no open, pending, or escalated tickets!");
-						}
-					}
-				} catch (SQLException e) {
-					e.printStackTrace();
-				} finally {
-					if(connection != null) {
-						try {
-							connection.close();
-						} catch (SQLException e) {
-							e.printStackTrace();
-						}
-					}
-					
-					if (p != null) {
-					try {
-							p.close();
-						} catch (SQLException e) {
-							e.printStackTrace();
-						}
-					}
-				}
+			if (!(args.length == 0)) {
+				sender.sendMessage(RED + "This command doesn't take arguments!");
 			} else {
-				sender.sendMessage(noPerm);
+				PreparedStatement p = null;
+				Player player = (Player) sender;
+				if (player.hasPermission("modreq.viewQueue")) {
+					String query = "SELECT id,name,time_submitted FROM requests WHERE status='OPEN'";
+					try {
+						connection = hikari.getConnection();
+						p = connection.prepareStatement(query);
+						ResultSet rs = p.executeQuery();
+						while (rs.next()) {
+							boolean hasRows = true;
+							//TODO get data from query to send back to command executor
+							
+							if (!hasRows) {
+								sender.sendMessage(prefix + "There are no open tickets!");
+							}
+						}
+					} catch (SQLException e) {
+						e.printStackTrace();
+					} finally {
+						if(connection != null) {
+							try {
+								connection.close();
+							} catch (SQLException e) {
+								e.printStackTrace();
+							}
+						}
+
+						if (p != null) {
+							try {
+								p.close();
+							} catch (SQLException e) {
+								e.printStackTrace();
+							}
+						}
+					}
+				} else if (player.hasPermission("modreq.admin")) {
+					String query = "SELECT id,name,status,time_submitted FROM requests WHERE status IN ('OPEN', 'PENDING', 'ESCALATED')";
+					try {
+						connection = hikari.getConnection();
+						p = connection.prepareStatement(query);
+						ResultSet rs = p.executeQuery();
+						while (rs.next()) {
+							boolean hasRows = true; 
+							//TODO get data from query to send back to command executor
+							
+							if (!hasRows) {
+								sender.sendMessage(prefix + "There are no open, pending, or escalated tickets!");
+							}
+						}
+					} catch (SQLException e) {
+						e.printStackTrace();
+					} finally {
+						if(connection != null) {
+							try {
+								connection.close();
+							} catch (SQLException e) {
+								e.printStackTrace();
+							}
+						}
+						
+						if (p != null) {
+						try {
+								p.close();
+							} catch (SQLException e) {
+								e.printStackTrace();
+							}
+						}
+					}
+				} else {
+					sender.sendMessage(noPerm);
+				}
 			}
 			return true;
 		}
@@ -315,17 +328,25 @@ public class main extends JavaPlugin implements Listener {
 	public class commandReqaccept implements CommandExecutor {
 		@Override
 		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-			Player player = (Player) sender;
-			if (player.hasPermission("modreq.reqaccept")) {
-				if (!(sender instanceof Player)) { 
-					sender.sendMessage(notPlayer);
-				} else if (args.length == 0) {
-					sender.sendMessage(prefix + RED + "You need to specify a request ID!");
-				} else {
-					//TODO get the id the user specified, check the database for that id. if it exists and is open, assign it to sender
-				}
+			if (args.length > 1) {
+				sender.sendMessage(RED + "Please enter a valid request ID!");
 			} else {
-				sender.sendMessage(noPerm);
+				if (isInt(args[0])){
+					Player player = (Player) sender;
+					if (player.hasPermission("modreq.reqaccept")) {
+						if (!(sender instanceof Player)) { 
+							sender.sendMessage(notPlayer);
+						} else if (args.length == 0) {
+							sender.sendMessage(prefix + RED + "You need to specify a request ID!");
+						} else {
+							//TODO get the id the user specified, check the database for that id. if it exists and is open, assign it to sender
+						}
+					} else {
+						sender.sendMessage(noPerm);
+					}
+				} else {
+					sender.sendMessage(RED + "Please enter a valid request ID!");
+				}
 			}
 			return true;
 		}
