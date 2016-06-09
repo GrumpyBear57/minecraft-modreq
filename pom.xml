@@ -5,8 +5,8 @@
 	<version>1.0.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>ModRequest</name>
-	<url>https://maven.apache.org</url>
 	<properties>
+		<mainClass>com.grumpybear.modreq.main</mainClass>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 	
@@ -64,7 +64,7 @@
 				<version>2.3</version>
 				<executions>
 					<execution>
-						<phase>packages</phase>
+						<phase>package</phase>
 						<goals>
 							<goal>shade</goal>
 						</goals>
