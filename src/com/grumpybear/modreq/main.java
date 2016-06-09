@@ -3,6 +3,7 @@ package com.grumpybear.modreq;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.logging.Logger;
 
@@ -218,18 +219,114 @@ public class main extends JavaPlugin implements Listener {
 						for (int i = 0; i < playersOnline.length; i++) {
 							Player player1 = (Player) playersOnline[i];
 							if (player1.hasPermission("modreq.veiwQueue")) {
-								player1.sendMessage(prefix + AQUA + player.getDisplayName() + GOLD + " has submitted a new request!");
+								player1.sendMessage(prefix + GREEN + player.getDisplayName() + GOLD + " has submitted a new request with ID: " + ticketNumber + "!");
 							}
 						}
 					} else {
 						sender.sendMessage(noPerm);
 					}
 				}
-				
 			}
 			return true;
 		}
 		
+	}
+	
+	public class commandModqueue implements CommandExecutor {
+		@Override 
+		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+			PreparedStatement p = null;
+			Player player = (Player) sender;
+			if (player.hasPermission("modreq.viewQueue")) {
+				String query = "SELECT id,name,time_submitted FROM requests WHERE status='OPEN'";
+				try {
+					connection = hikari.getConnection();
+					p = connection.prepareStatement(query);
+					ResultSet rs = p.executeQuery();
+					while (rs.next()) {
+						boolean hasRows = true;
+						//TODO get data from query to send back to command executor
+						
+						if (!hasRows) {
+							sender.sendMessage(prefix + "There are no open tickets!");
+						}
+					}
+				} catch (SQLException e) {
+					e.printStackTrace();
+				} finally {
+					if(connection != null) {
+						try {
+							connection.close();
+						} catch (SQLException e) {
+							e.printStackTrace();
+						}
+					}
+
+					if (p != null) {
+						try {
+							p.close();
+						} catch (SQLException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+			} else if (player.hasPermission("modreq.admin")) {
+				String query = "SELECT id,name,status,time_submitted FROM requests WHERE status IN ('OPEN', 'PENDING', 'ESCALATED')";
+				try {
+					connection = hikari.getConnection();
+					p = connection.prepareStatement(query);
+					ResultSet rs = p.executeQuery();
+					while (rs.next()) {
+						boolean hasRows = true; 
+						//TODO get data from query to send back to command executor
+						
+						if (!hasRows) {
+							sender.sendMessage(prefix + "There are no open, pending, or escalated tickets!");
+						}
+					}
+				} catch (SQLException e) {
+					e.printStackTrace();
+				} finally {
+					if(connection != null) {
+						try {
+							connection.close();
+						} catch (SQLException e) {
+							e.printStackTrace();
+						}
+					}
+					
+					if (p != null) {
+					try {
+							p.close();
+						} catch (SQLException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+			} else {
+				sender.sendMessage(noPerm);
+			}
+			return true;
+		}
+	}
+	
+	public class commandReqaccept implements CommandExecutor {
+		@Override
+		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+			Player player = (Player) sender;
+			if (player.hasPermission("modreq.reqaccept")) {
+				if (!(sender instanceof Player)) { 
+					sender.sendMessage(notPlayer);
+				} else if (args.length == 0) {
+					sender.sendMessage(prefix + RED + "You need to specify a request ID!");
+				} else {
+					//TODO get the id the user specified, check the database for that id. if it exists and is open, assign it to sender
+				}
+			} else {
+				sender.sendMessage(noPerm);
+			}
+			return true;
+		}
 	}
 	
 }
