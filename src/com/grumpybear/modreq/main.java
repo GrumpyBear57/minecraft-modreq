@@ -13,7 +13,9 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.zaxxer.hikari.HikariDataSource;
@@ -26,15 +28,15 @@ public class main extends JavaPlugin implements Listener {
 	ChatColor GREEN = ChatColor.GREEN;
 	ChatColor GOLD = ChatColor.GOLD;
 	ChatColor RED = ChatColor.RED;
+	ChatColor AQUA = ChatColor.AQUA;
 	
 	// chat output vars
 	String prefix = RED + "[" + GREEN + "Mod Request" + RED + "] " + GOLD;
 	String noPerm = RED + "You don't have permission to perform that command!";
-	String notPlayer = "You must be a player to perform this command!";
+	String notPlayer = RED + "You must be a player to perform this command!";
 	
 	// database stuffs  
 	private HikariDataSource hikari;
-	PreparedStatement p = null;
 	Connection connection = null;
 	
 	// other stuff
@@ -44,6 +46,12 @@ public class main extends JavaPlugin implements Listener {
 	@Override
 	public void onEnable() {
 		createConfig();
+		// initialize stuff
+		log.info("Registering commands...");
+		this.getCommand("modreq").setExecutor(new commandModreq());
+		
+		getServer().getPluginManager().registerEvents(new staffJoinListener(), this);
+		
 		// DO EVERYTHING NOT DATABSE RELATED BEFORE THIS
 		connectDB();
 		createTable();
@@ -52,6 +60,7 @@ public class main extends JavaPlugin implements Listener {
 	
 	@Override
 	public void onDisable() {
+		getLogger().info("Unloading modreq " + version);
 	}
 	
 	private void createConfig() {
@@ -78,6 +87,17 @@ public class main extends JavaPlugin implements Listener {
 		}
 	}
 	
+	public class staffJoinListener implements Listener {
+		@EventHandler
+		public void onPlayerJoin(PlayerJoinEvent event) {
+			Player player = event.getPlayer();
+			boolean newRequests = true; //TODO check db for any requests with the OPEN status, and change this to true if there is. 
+			if (player.hasPermission("modreq.viewQueue") && newRequests) {
+				player.sendMessage(prefix + "New request(s) in queue!");
+			}
+		}
+	}
+	
 	public void connectDB() {
 		String address = config.getString("Database.Address");
 		String name = config.getString("Database.Name");
@@ -97,18 +117,17 @@ public class main extends JavaPlugin implements Listener {
 	}
 
 	public void createTable() {
+		PreparedStatement p = null;
 		String createTable = "CREATE TABLE IF NOT EXISTS requests " +
 				  "(id INT NOT NULL AUTO_INCREMENT, " +
-				  "user VARCHAR(32) NOT NULL, "+
+				  "user VARCHAR(36) NOT NULL, " +
+				  "name VARCHAR(32) NOT NULL, " +
 				  "status VARCHAR(10) NOT NULL, " +
-				  "assignee VARCHAR(32) NOT NULL, " +
+				  "assignee VARCHAR(36) NULL, " +
+				  "assignee_name VARCHAR(32) NULL, " +
 				  "time_submitted DATETIME NOT NULL, " +
 				  "time_resolved DATETIME NULL, " +
-				  "location_x DOUBLE NOT NULL, " +
-				  "location_y DOUBLE NOT NULL, " +
-				  "location_z DOUBLE NOT NULL, " +
-				  "location_yaw FLOAT NOT NULL, " +
-				  "location_pitch FLOAT NOT NULL, " +
+				  "location VARCHAR(128) NOT NULL, " +
 				  "request VARCHAR(100) NOT NULL, " +
 				  "note_x VARCHAR(100) NULL, " + //TODO figure out a way to get this to create as many note colums as config specifies
 				  "resolution VARCHAR(100) NULL, " +
@@ -142,52 +161,73 @@ public class main extends JavaPlugin implements Listener {
 	}
 	
 	public class commandModreq implements CommandExecutor {
-
 		@Override
 		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+			PreparedStatement p = null;
 			if (args.length == 0) {
 				sender.sendMessage(prefix + GOLD + "This server is running " + GREEN + "Mod Request " + version + GOLD + " by GrumpyBear57!");
 				sender.sendMessage(GOLD + "To submit a request, do /modreq <request>");
-				sender.sendMessage("Licensed under Apache v2.0, Copyright 2016 GrumpyBear57");
-			//} else if (!(sender instanceof Player)) { 
-				//sender.sendMessage(notPlayer); //TODO find out if this works
+				sender.sendMessage(AQUA + "Licensed under Apache v2.0, Copyright 2016 GrumpyBear57");
 			} else { 
-				Player player = (Player) sender;
-				int ticketNumber = 42; //this is temporary until we get the request database going.
-				
-				if(player.hasPermission("modreq.newReq")) {
-					String request = null;
-					for (int i = 0; i < args.length; i++) {
-						if (i != args.length-1) {
-							request += args[i] + " ";
-						} else {
-							request += args[i];
-						}
-					}
-					String query = ""; //TODO actual query
-					
-					try {
-						connection = hikari.getConnection();
-						p = connection.prepareStatement(query);
-					} catch (SQLException e) {
-						e.printStackTrace();
-					}
-					
-					sender.sendMessage(prefix + "Your request has been added to the queue. Your ticket number is " + ticketNumber + ".");
-					sender.sendMessage(GOLD + "Your request: '" + request + "'");
-					
-					Player[] playersOnline = Bukkit.getServer().getOnlinePlayers().toArray(new Player[Bukkit.getServer().getOnlinePlayers().size()]);
-					for (int i = 0; i < playersOnline.length; i++) {
-						Player player1 = (Player) playersOnline[i];
-						if (player1.hasPermission("modreq.veiwQueue")) {
-							player1.sendMessage(prefix + GREEN + player.getDisplayName() + GOLD + " has submitted a new request!");
-						}
-					}
+				if (!(sender instanceof Player)) {
+					sender.sendMessage(notPlayer);
 				} else {
-					sender.sendMessage(noPerm);
+					Player player = (Player) sender;
+					int ticketNumber = 42; //this is temporary until we get the request database going.
+					
+					if(player.hasPermission("modreq.newReq")) {
+						String request = "";
+						for (int i = 0; i < args.length; i++) {
+							if (i != args.length-1) {
+								request += args[i] + " ";
+							} else {
+								request += args[i];
+							}
+						}
+						String query = "INSERT INTO requests (user, name, status, time_submitted, location, request) " + 
+						"VALUES (?, ?, 'OPEN', now(), ?, ?)";
+						
+						String UUID = ((Player) sender).getUniqueId().toString();
+						String name = ((Player) sender).getDisplayName();
+						String location = ((Player) sender).getLocation().toString(); // might have issues with this later... 
+
+						try {
+							connection = hikari.getConnection();
+							p = connection.prepareStatement(query);
+							p.setString(1, UUID);
+							p.setString(2, name);
+							p.setString(3, location);
+							p.setString(4, request);
+							p.execute();
+						} catch (SQLException e) {
+							e.printStackTrace();
+						} finally {
+							if (connection != null) {
+								try {
+									connection.close();
+								} catch (SQLException e) {
+									e.printStackTrace();
+								}
+							}
+						}
+						
+						sender.sendMessage(prefix + "Your request has been added to the queue. Your ticket number is " + AQUA + ticketNumber + ".");
+						sender.sendMessage(GOLD + "Your request: '" + AQUA + request + "'");
+						
+						Player[] playersOnline = Bukkit.getServer().getOnlinePlayers().toArray(new Player[Bukkit.getServer().getOnlinePlayers().size()]);
+						for (int i = 0; i < playersOnline.length; i++) {
+							Player player1 = (Player) playersOnline[i];
+							if (player1.hasPermission("modreq.veiwQueue")) {
+								player1.sendMessage(prefix + AQUA + player.getDisplayName() + GOLD + " has submitted a new request!");
+							}
+						}
+					} else {
+						sender.sendMessage(noPerm);
+					}
 				}
+				
 			}
-			return false;
+			return true;
 		}
 		
 	}
