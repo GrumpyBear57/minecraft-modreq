@@ -7,3 +7,6 @@ commands:
   modreq: 
     description: Submit a request to the staff. 
     usage: /modreq [Request]
+  modqueue: 
+    description: View the current request queue. 
+    usage: /modqueue
