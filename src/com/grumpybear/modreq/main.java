@@ -50,6 +50,8 @@ public class main extends JavaPlugin implements Listener {
 		// initialize stuff
 		log.info("Registering commands...");
 		this.getCommand("modreq").setExecutor(new commandModreq());
+		this.getCommand("modqueue").setExecutor(new commandModqueue());
+		this.getCommand("reqaccept").setExecutor(new commandReqaccept());
 		
 		getServer().getPluginManager().registerEvents(new staffJoinListener(), this);
 		
@@ -213,7 +215,7 @@ public class main extends JavaPlugin implements Listener {
 						}
 						
 						sender.sendMessage(prefix + "Your request has been added to the queue. Your ticket number is " + AQUA + ticketNumber + ".");
-						sender.sendMessage(GOLD + "Your request: '" + AQUA + request + "'");
+						sender.sendMessage(GOLD + "Your request: '" + AQUA + request + GOLD + "'");
 						
 						Player[] playersOnline = Bukkit.getServer().getOnlinePlayers().toArray(new Player[Bukkit.getServer().getOnlinePlayers().size()]);
 						for (int i = 0; i < playersOnline.length; i++) {

@@ -10,3 +10,6 @@ commands:
   modqueue: 
     description: View the current request queue. 
     usage: /modqueue
+  reqaccept:
+    description: Accept a request from the queue.
+    usage: /reqaccept [ID]
