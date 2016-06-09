@@ -1,10 +1,10 @@
 package com.grumpybear.modreq;
 
 import java.io.File;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.logging.Logger;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -21,77 +21,79 @@ import com.zaxxer.hikari.HikariDataSource;
 public class main extends JavaPlugin implements Listener {
 	// version
 	String version = "v1.0.0";
+
+	// colours
+	ChatColor GREEN = ChatColor.GREEN;
+	ChatColor GOLD = ChatColor.GOLD;
+	ChatColor RED = ChatColor.RED;
 	
 	// chat output vars
-	String prefix = ChatColor.RED + "[" + ChatColor.GREEN + "Mod Request" + ChatColor.RED + "] " + ChatColor.GOLD;
-	String noPerm = ChatColor.RED + "You don't have permission to perform that command!";
+	String prefix = RED + "[" + GREEN + "Mod Request" + RED + "] " + GOLD;
+	String noPerm = RED + "You don't have permission to perform that command!";
+	String notPlayer = "You must be a player to perform this command!";
 	
 	// database stuffs  
 	private HikariDataSource hikari;
 	PreparedStatement p = null;
 	Connection connection = null;
 	
-	// config file stuffs
-	private File configf, databasef;
-	private FileConfiguration config, database;
+	// other stuff
+	FileConfiguration config = getConfig();
+	Logger log = getLogger();
 	
 	@Override
 	public void onEnable() {
-		getLogger().info("Connecting to database...");
-		connectDB();
-		getLogger().info("Database connected.");
-		createTable();
 		createConfig();
-		getLogger().info("Successfully loaded modreq " + version);
+		// DO EVERYTHING NOT DATABSE RELATED BEFORE THIS
+		connectDB();
+		createTable();
+		log.info("Successfully loaded modreq " + version);
 	}
 	
 	@Override
 	public void onDisable() {
 	}
 	
-	public FileConfiguration getDatabaseConfig() {
-		return this.database;
-	}
-	
 	private void createConfig() {
-		configf = new File(getDataFolder(), "config.yml");
-		databasef = new File(getDataFolder(), "database.yml");
-		
-		if (!configf.exists()) {
-			getLogger().info("config.yml doesn't exist... creating...");
-			configf.getParentFile().mkdirs();
-			saveResource("config.yml");
-		}
-		if (!databasef.exists()) {
-			getLogger().info("database.yml doesn't exist... creating...");
-			databasef.getParentFile().mkdirs();
-			saveResource("database.yml");
-		}
-		
-		config = new YamlConfiguration();
-		database = new YamlConfiguration();
 		try {
-			config.load(configf);
-			database.load(databasef);
-		} catch (IOException e) {
+			if (!getDataFolder().exists()) {
+				getDataFolder().mkdirs();
+			}
+			File file = new File(getDataFolder(), "config.yml");
+			if (!file.exists()) {
+				log.info("config.yml doesn't exist. Creating...");
+				config.addDefault("Database.Address", "localhost");
+				config.addDefault("Database.Name", "database");
+				config.addDefault("Database.Username", "AzureDiamond");
+				config.addDefault("Database.Password", "hunter2");
+				config.addDefault("", "");
+				config.addDefault("##View docs", "<LINK>"); //TODO add link to documentation about plugin (contains things like permission nodes)
+				config.options().copyDefaults(true);
+				saveConfig();
+			} else {
+				log.info("Loading config...");
+			}
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 	
 	public void connectDB() {
-		String address = plugin.getDatabaseConfig().getString("Database.Address");
-		String name = plugin.getDatabaseConfig().getString("Database.Name");
-		String username = plugin.getDatabaseConfig().getString("Database.Username");
-		String password = plugin.getDatabaseConfig().getString("Database.Password");
+		String address = config.getString("Database.Address");
+		String name = config.getString("Database.Name");
+		String username = config.getString("Database.Username");
+		log.info("connecting to database " + name + " on " + address + " with user " + username + "...");
+		String password = config.getString("Database.Password");
 		
 		hikari = new HikariDataSource();
 		hikari.setMaximumPoolSize(8);
-		hikari.setDataSourceClassName("com.mysql.jbdc.jbdc2.optional.MysqlDataSource");
+		hikari.setDataSourceClassName("com.mysql.jdbc.jdbc2.optional.MysqlDataSource");
 		hikari.addDataSourceProperty("serverName", address);
 		hikari.addDataSourceProperty("port", 3306);
 		hikari.addDataSourceProperty("databaseName", name);
 		hikari.addDataSourceProperty("user", username);
 		hikari.addDataSourceProperty("password", password);
+		log.info("Database connected.");
 	}
 
 	public void createTable() {
@@ -100,7 +102,7 @@ public class main extends JavaPlugin implements Listener {
 				  "user VARCHAR(32) NOT NULL, "+
 				  "status VARCHAR(10) NOT NULL, " +
 				  "assignee VARCHAR(32) NOT NULL, " +
-				  "time_submitted DATETIME GENERATED ALWAYS AS (NOW()) VIRTUAL, " +
+				  "time_submitted DATETIME NOT NULL, " +
 				  "time_resolved DATETIME NULL, " +
 				  "location_x DOUBLE NOT NULL, " +
 				  "location_y DOUBLE NOT NULL, " +
@@ -144,11 +146,11 @@ public class main extends JavaPlugin implements Listener {
 		@Override
 		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 			if (args.length == 0) {
-				sender.sendMessage(prefix + ChatColor.GOLD + "This server is running " + ChatColor.GREEN + "Mod Request " + version + ChatColor.GOLD + " by GrumpyBear57!");
-				sender.sendMessage(ChatColor.GOLD + "To submit a request, do /modreq <request>");
+				sender.sendMessage(prefix + GOLD + "This server is running " + GREEN + "Mod Request " + version + GOLD + " by GrumpyBear57!");
+				sender.sendMessage(GOLD + "To submit a request, do /modreq <request>");
 				sender.sendMessage("Licensed under Apache v2.0, Copyright 2016 GrumpyBear57");
-			} else if (!(sender instanceof Player)) { 
-				sender.sendMessage("You must be a player to perform this command!"); //TODO find out if this works
+			//} else if (!(sender instanceof Player)) { 
+				//sender.sendMessage(notPlayer); //TODO find out if this works
 			} else { 
 				Player player = (Player) sender;
 				int ticketNumber = 42; //this is temporary until we get the request database going.
@@ -172,13 +174,13 @@ public class main extends JavaPlugin implements Listener {
 					}
 					
 					sender.sendMessage(prefix + "Your request has been added to the queue. Your ticket number is " + ticketNumber + ".");
-					sender.sendMessage(ChatColor.GOLD + "Your request: '" + request + "'");
+					sender.sendMessage(GOLD + "Your request: '" + request + "'");
 					
 					Player[] playersOnline = Bukkit.getServer().getOnlinePlayers().toArray(new Player[Bukkit.getServer().getOnlinePlayers().size()]);
 					for (int i = 0; i < playersOnline.length; i++) {
 						Player player1 = (Player) playersOnline[i];
 						if (player1.hasPermission("modreq.veiwQueue")) {
-							player1.sendMessage(prefix + ChatColor.GREEN + player.getDisplayName() + ChatColor.GOLD + " has submitted a new request!");
+							player1.sendMessage(prefix + GREEN + player.getDisplayName() + GOLD + " has submitted a new request!");
 						}
 					}
 				} else {
