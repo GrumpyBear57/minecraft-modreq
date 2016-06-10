@@ -271,18 +271,24 @@ public class main extends JavaPlugin implements Listener {
 				if (!(args.length == 0)) {
 					sender.sendMessage(RED + "This command doesn't take arguements!");
 				} else {
-					String query = "SELECT id,name,time_submitted FROM requests WHERE status='OPEN'";
+					String query = "SELECT id,name FROM requests WHERE status='OPEN'";
 					try {
 						connection = hikari.getConnection();
 						p = connection.prepareStatement(query);
 						ResultSet rs = p.executeQuery();
-						while (rs.next()) {
-							boolean hasRows = true;
-							//TODO get data from query to send back to command executor
-							
-							if (!hasRows) {
-								sender.sendMessage(prefix + "There are no open tickets!");
+						if (rs.next()) {
+							sender.sendMessage(prefix + "Open requests:");
+							int id = rs.getInt("id");
+							String name = rs.getString("name");
+							sender.sendMessage(GOLD + "Request ID: " + AQUA + id + GOLD + " from " + AQUA + name + ".");
+							while (rs.next()) {
+								int id1 = rs.getInt("id");
+								String name1 = rs.getString("name");
+								
+								sender.sendMessage(GOLD + "Request ID: " + AQUA + id1 + GOLD + " from " + AQUA + name1 + ".");
 							}
+						} else {
+							sender.sendMessage(prefix + "No items in queue!");
 						}
 					} catch (SQLException e) {
 						e.printStackTrace();
@@ -365,7 +371,7 @@ public class main extends JavaPlugin implements Listener {
 					String UUID = ((Player) sender).getUniqueId().toString();
 					String name = ((Player) sender).getDisplayName();
 					
-					String query = "UPDATE requests SET assignee='" + UUID + "', assignee_name='" + name + "' WHERE id=?";
+					String query = "UPDATE requests SET status='pending', assignee='" + UUID + "', assignee_name='" + name + "' WHERE id=?";
 					
 					try {
 						connection = hikari.getConnection();
