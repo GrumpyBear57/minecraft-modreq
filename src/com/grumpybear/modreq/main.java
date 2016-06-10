@@ -23,7 +23,8 @@ import com.zaxxer.hikari.HikariDataSource;
 
 public class main extends JavaPlugin implements Listener {
 	// version
-	String version = "v1.0.0";
+	String version = "v1.0.0 (SNAPSHOT)";
+	boolean snapshot = true;
 
 	// colours
 	ChatColor GREEN = ChatColor.GREEN;
@@ -207,6 +208,9 @@ public class main extends JavaPlugin implements Listener {
 			Player player = (Player) sender;
 			if (args.length == 0) {
 				sender.sendMessage(prefix + GOLD + "This server is running " + GREEN + "Mod Request " + version + GOLD + " by GrumpyBear57!");
+				if (snapshot) {
+					sender.sendMessage(GOLD + "Please note that this is a snapshot build, things are likely to be either unfinished, or broken.");
+				}
 				if (player.hasPermission("modreq.newReq")) {
 					sender.sendMessage(GOLD + "To submit a request, do /modreq <request>");
 				}
