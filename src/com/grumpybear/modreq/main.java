@@ -93,10 +93,35 @@ public class main extends JavaPlugin implements Listener {
 	public class staffJoinListener implements Listener {
 		@EventHandler
 		public void onPlayerJoin(PlayerJoinEvent event) {
-			Player player = event.getPlayer();
-			boolean newRequests = true; //TODO check db for any requests with the OPEN status, and change this to true if there is. 
-			if (player.hasPermission("modreq.viewQueue") && newRequests) {
-				player.sendMessage(prefix + "New request(s) in queue!");
+			PreparedStatement p = null;
+			Player player = event.getPlayer(); 
+			if (player.hasPermission("modreq.viewQueue")) {
+				String query = "SELECT id,name FROM requests WHERE status='OPEN'";
+				try {
+					connection = hikari.getConnection();
+					p = connection.prepareStatement(query);
+					ResultSet rs = p.executeQuery();
+					if (rs.next()) {
+						player.sendMessage(prefix + "New request(s) in queue!");
+					}
+				} catch (SQLException e) {
+					e.printStackTrace();
+				} finally {
+					if(connection != null) {
+						try {
+							connection.close();
+						} catch (SQLException e) {
+							e.printStackTrace();
+						}
+					}
+					if (p != null) {
+						try {
+							p.close();
+						} catch (SQLException e) {
+							e.printStackTrace();
+						}
+					}
+				}
 			}
 		}
 	}
@@ -197,7 +222,7 @@ public class main extends JavaPlugin implements Listener {
 							}
 						}
 						String insert = "INSERT INTO requests (user, name, status, time_submitted, location, request) " + 
-						"VALUES (?, ?, 'OPEN', now(), ?, ?)";
+						"VALUES (?, ?, 'open', now(), ?, ?)";
 						
 						String UUID = ((Player) sender).getUniqueId().toString();
 						String name = ((Player) sender).getDisplayName();
@@ -267,7 +292,49 @@ public class main extends JavaPlugin implements Listener {
 		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 			PreparedStatement p = null;
 			Player player = (Player) sender;
-			if (player.hasPermission("modreq.viewQueue")) {
+			if (player.hasPermission("modreq.admin")) {
+				if (!(args.length == 0)) {
+					sender.sendMessage(RED + "This command doesn't take arguements!");
+				} else {
+					String query = "SELECT id,name,status FROM requests WHERE status IN ('OPEN', 'PENDING', 'ESCALATED')";
+					try {
+						connection = hikari.getConnection();
+						p = connection.prepareStatement(query);
+						ResultSet rs = p.executeQuery();
+						if (rs.next()) {
+							sender.sendMessage(prefix + "Open requests:");
+							int id = rs.getInt("id");
+							String name = rs.getString("name");
+							String status = rs.getString("status");
+							sender.sendMessage(GOLD + "Request ID: " + AQUA + id + GOLD + " from " + AQUA + name + GOLD + " with status: " + status + ".");
+							while (rs.next()) {
+								int id1 = rs.getInt("id");
+								String name1 = rs.getString("name");
+								String status1 = rs.getString("status");
+								sender.sendMessage(GOLD + "Request ID: " + AQUA + id1 + GOLD + " from " + AQUA + name1 + GOLD + " with status: " + status1 + ".");
+							}
+						}
+					} catch (SQLException e) {
+						e.printStackTrace();
+					} finally {
+						if(connection != null) {
+							try {
+								connection.close();
+							} catch (SQLException e) {
+								e.printStackTrace();
+							}
+						}
+						
+						if (p != null) {
+						try {
+								p.close();
+							} catch (SQLException e) {
+								e.printStackTrace();
+							}
+						}
+					}
+				}
+			} else if (player.hasPermission("modreq.viewQueue")) {
 				if (!(args.length == 0)) {
 					sender.sendMessage(RED + "This command doesn't take arguements!");
 				} else {
@@ -280,12 +347,12 @@ public class main extends JavaPlugin implements Listener {
 							sender.sendMessage(prefix + "Open requests:");
 							int id = rs.getInt("id");
 							String name = rs.getString("name");
-							sender.sendMessage(GOLD + "Request ID: " + AQUA + id + GOLD + " from " + AQUA + name + ".");
+							sender.sendMessage(GOLD + "Request ID: " + AQUA + id + GOLD + " from " + AQUA + name + GOLD + ".");
 							while (rs.next()) {
 								int id1 = rs.getInt("id");
 								String name1 = rs.getString("name");
 								
-								sender.sendMessage(GOLD + "Request ID: " + AQUA + id1 + GOLD + " from " + AQUA + name1 + ".");
+								sender.sendMessage(GOLD + "Request ID: " + AQUA + id1 + GOLD + " from " + AQUA + name1 + GOLD + ".");
 							}
 						} else {
 							sender.sendMessage(prefix + "No items in queue!");
@@ -303,43 +370,6 @@ public class main extends JavaPlugin implements Listener {
 
 						if (p != null) {
 							try {
-								p.close();
-							} catch (SQLException e) {
-								e.printStackTrace();
-							}
-						}
-					}
-				}
-			} else if (player.hasPermission("modreq.admin")) {
-				if (!(args.length == 0)) {
-					sender.sendMessage(RED + "This command doesn't take arguements!");
-				} else {
-					String query = "SELECT id,name,status,time_submitted FROM requests WHERE status IN ('OPEN', 'PENDING', 'ESCALATED')";
-					try {
-						connection = hikari.getConnection();
-						p = connection.prepareStatement(query);
-						ResultSet rs = p.executeQuery();
-						while (rs.next()) {
-							boolean hasRows = true; 
-							//TODO get data from query to send back to command executor
-							
-							if (!hasRows) {
-								sender.sendMessage(prefix + "There are no open, pending, or escalated tickets!");
-							}
-						}
-					} catch (SQLException e) {
-						e.printStackTrace();
-					} finally {
-						if(connection != null) {
-							try {
-								connection.close();
-							} catch (SQLException e) {
-								e.printStackTrace();
-							}
-						}
-						
-						if (p != null) {
-						try {
 								p.close();
 							} catch (SQLException e) {
 								e.printStackTrace();
