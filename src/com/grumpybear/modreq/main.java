@@ -35,6 +35,7 @@ public class main extends JavaPlugin implements Listener {
 	String prefix = RED + "[" + GREEN + "Mod Request" + RED + "] " + GOLD;
 	String noPerm = RED + "You don't have permission to perform that command!";
 	String notPlayer = RED + "You must be a player to perform this command!";
+	String badID = RED + "Please enter a valid request ID!";
 	
 	// database stuffs  
 	private HikariDataSource hikari;
@@ -52,6 +53,8 @@ public class main extends JavaPlugin implements Listener {
 		this.getCommand("modreq").setExecutor(new commandModreq());
 		this.getCommand("modqueue").setExecutor(new commandModqueue());
 		this.getCommand("reqaccept").setExecutor(new commandReqaccept());
+		this.getCommand("reqresolve").setExecutor(new commandReqresolve());
+		this.getCommand("reqclose").setExecutor(new commandReqclose());
 		
 		getServer().getPluginManager().registerEvents(new staffJoinListener(), this);
 		
@@ -391,9 +394,9 @@ public class main extends JavaPlugin implements Listener {
 			Player player = (Player) sender; 
 			if (player.hasPermission("modreq.reqaccept")){
 				if (args.length == 0 || args.length > 1) {
-					sender.sendMessage(RED + "Please enter a valid request ID!");
+					sender.sendMessage(badID);
 				} else if (!(isInt(args[0]))) {
-					sender.sendMessage(RED + "Please enter a valid request ID!");
+					sender.sendMessage(badID);
 				} else  if (!(sender instanceof Player)) {
 					sender.sendMessage(notPlayer);
 				} else {
@@ -436,6 +439,49 @@ public class main extends JavaPlugin implements Listener {
 			}
 			return true;
 		}
+	}
+
+	public class commandReqresolve implements CommandExecutor {
+		@Override
+		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+			Player player = (Player) sender;
+			if (player.hasPermission("modreq.resolve")) {
+				if (args.length == 0) {
+					sender.sendMessage(badID);
+				} else if (!(isInt(args[0]))) {
+					sender.sendMessage(badID);
+				} else if (!(sender instanceof Player)) { 
+					sender.sendMessage(notPlayer);
+				} else {
+					int id = Integer.parseInt(args[0]);
+					String resolution = "";
+					for (int i = 1; i < args.length; i++) {
+						if (i != args.length-1) {
+							resolution += args[i] + " ";
+						} else {
+							resolution += args[i];
+						}
+					}
+					String query = "UPDATE requests SET status='resolved', time_resolved=now(), resolution=?";
+					try {
+						connection = hikari.getConnection();
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+			return false;
+		}
+		
+	}
+	
+	public class commandReqclose implements CommandExecutor {
+		@Override
+		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+			
+			return false;
+		}
+		
 	}
 	
 }
