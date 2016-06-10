@@ -334,6 +334,7 @@ public class main extends JavaPlugin implements Listener {
 	public class commandReqaccept implements CommandExecutor {
 		@Override
 		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+			PreparedStatement p = null;
 			Player player = (Player) sender; 
 			if (player.hasPermission("modreq.reqaccept")){
 				if (args.length == 0 || args.length > 1) {
@@ -344,8 +345,37 @@ public class main extends JavaPlugin implements Listener {
 					sender.sendMessage(notPlayer);
 				} else {
 					int id = Integer.parseInt(args[0]);
+					String UUID = ((Player) sender).getUniqueId().toString();
+					String name = ((Player) sender).getDisplayName();
 					
-					//TODO get the id the user specified, check the database for that id. if it exists and is open, assign it to sender
+					String query = "UPDATE requests SET assignee='" + UUID + "', assignee_name='" + name + "' WHERE id=?";
+					
+					try {
+						connection = hikari.getConnection();
+						p = connection.prepareStatement(query);
+						p.setInt(1, id);
+						p.execute();
+					} catch (SQLException e) {
+						e.printStackTrace();
+					} finally {
+						if (connection != null) {
+							try {
+								connection.close();
+							} catch (SQLException e) {
+								e.printStackTrace();
+							}
+						}
+					
+						if (p != null) {
+							try {
+								p.close();
+							} catch (SQLException e) {
+								e.printStackTrace();
+							}
+						}
+					}
+					sender.sendMessage(prefix + "Successfully accepted request #" + id + "!"); //TODO maybe a way to validate they did actually accept the ticket? 
+					//If one where to enter in a ticket number that doesn't exist, this would still trigger. Probably... I think...
 				}
 			} else {
 				sender.sendMessage(noPerm);
