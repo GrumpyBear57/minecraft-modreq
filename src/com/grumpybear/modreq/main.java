@@ -448,8 +448,65 @@ public class main extends JavaPlugin implements Listener {
 	public class commandReqresolve implements CommandExecutor {
 		@Override
 		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+			PreparedStatement p = null;
 			Player player = (Player) sender;
 			if (player.hasPermission("modreq.resolve")) {
+				if (args.length == 0) {
+					sender.sendMessage(badID);
+				} else if (args.length == 1) {
+					sender.sendMessage(RED + "You need to enter a resolution to the request!");
+				} else if (!(isInt(args[0]))) {
+					sender.sendMessage(badID);
+				} else if (!(sender instanceof Player)) { 
+					sender.sendMessage(notPlayer);
+				} else {
+					int id = Integer.parseInt(args[0]);
+					String resolution = "";
+					for (int i = 1; i < args.length; i++) {
+						if (i != args.length-1) {
+							resolution += args[i] + " ";
+						} else {
+							resolution += args[i];
+						}
+					}
+					String query = "UPDATE requests SET status='resolved', time_resolved=now(), resolution=? WHERE id=?";
+					try {
+						connection = hikari.getConnection();
+						p = connection.prepareStatement(query);
+						p.setString(1, resolution);
+						p.setInt(2, id);
+						p.execute();
+					} catch (SQLException e) {
+						e.printStackTrace();
+					} finally {
+						if (connection != null) {
+							try {
+								connection.close();
+							} catch (SQLException e) {
+								e.printStackTrace();
+							}
+						}
+						if (p !=null) {
+							try {
+								p.close();
+							} catch (SQLException e) {
+								e.printStackTrace();
+							}
+						}
+					}
+					sender.sendMessage(prefix + "Successfully resolved request " + AQUA + "#" + id + GOLD + "!");
+				}
+			}
+			return true;
+		}
+	}
+	
+	public class commandReqclose implements CommandExecutor {
+		@Override
+		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+			PreparedStatement p = null;
+			Player player = (Player) sender;
+			if (player.hasPermission("modreq.close")) {
 				if (args.length == 0) {
 					sender.sendMessage(badID);
 				} else if (!(isInt(args[0]))) {
@@ -466,26 +523,36 @@ public class main extends JavaPlugin implements Listener {
 							resolution += args[i];
 						}
 					}
-					String query = "UPDATE requests SET status='resolved', time_resolved=now(), resolution=?";
+					String query = "UPDATE requests SET status='closed', time_resolved=now(), resolution=? WHERE id=?";
 					try {
 						connection = hikari.getConnection();
+						p = connection.prepareStatement(query);
+						p.setString(1, resolution);
+						p.setInt(2, id);
+						p.execute();
 					} catch (SQLException e) {
 						e.printStackTrace();
+					} finally {
+						if (connection != null) {
+							try {
+								connection.close();
+							} catch (SQLException e) {
+								e.printStackTrace();
+							}
+						}
+						if (p !=null) {
+							try {
+								p.close();
+							} catch (SQLException e) {
+								e.printStackTrace();
+							}
+						}
 					}
+					sender.sendMessage(prefix + "Successfully closed request " + AQUA + "#" + id + GOLD + "!");
 				}
 			}
-			return false;
+			return true;
 		}
-		
-	}
-	
-	public class commandReqclose implements CommandExecutor {
-		@Override
-		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-			
-			return false;
-		}
-		
 	}
 	
 }

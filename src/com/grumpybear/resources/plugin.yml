@@ -13,3 +13,10 @@ commands:
   reqaccept:
     description: Accept a request from the queue.
     usage: /reqaccept [ID]
+  reqresolve:
+    description: Mark a ticket as resolved.
+    usage: /reqresolve [ID] [Resolution]
+  reqclose: 
+    description: Mark a ticket as closed.
+    usage: /reqclose [ID] <Reason>
+    
