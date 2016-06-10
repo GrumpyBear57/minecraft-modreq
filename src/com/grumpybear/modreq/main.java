@@ -187,8 +187,6 @@ public class main extends JavaPlugin implements Listener {
 				if (!(sender instanceof Player)) {
 					sender.sendMessage(notPlayer);
 				} else {
-					int ticketNumber = 42; //this is temporary until we get the request database going.
-					
 					if(player.hasPermission("modreq.newReq")) {
 						String request = "";
 						for (int i = 0; i < args.length; i++) {
@@ -223,7 +221,6 @@ public class main extends JavaPlugin implements Listener {
 									e.printStackTrace();
 								}
 							}
-							
 							if (p != null) {
 								try {
 									p.close();
@@ -232,16 +229,29 @@ public class main extends JavaPlugin implements Listener {
 								}
 							}
 						}
-						
-						sender.sendMessage(prefix + "Your request has been added to the queue. Your ticket number is " + AQUA + ticketNumber + ".");
-						sender.sendMessage(GOLD + "Your request: '" + AQUA + request + GOLD + "'");
-						
-						Player[] playersOnline = Bukkit.getServer().getOnlinePlayers().toArray(new Player[Bukkit.getServer().getOnlinePlayers().size()]);
-						for (int i = 0; i < playersOnline.length; i++) {
-							Player player1 = (Player) playersOnline[i];
-							if (player1.hasPermission("modreq.veiwQueue")) {
-								player1.sendMessage(prefix + GREEN + player.getDisplayName() + GOLD + " has submitted a new request with ID: " + ticketNumber + "!");
+						String getID = "SELECT id FROM requests WHERE user=? AND location=? AND request=?";
+						try {
+							connection = hikari.getConnection();
+							p = connection.prepareStatement(getID);
+							p.setString(1, UUID);
+							p.setString(2, location);
+							p.setString(3, request);
+							ResultSet rs = p.executeQuery();
+							while (rs.next()) {
+								int id = rs.getInt("id");
+								sender.sendMessage(prefix + "Your request has been added to the queue.");
+								sender.sendMessage(GOLD + "Your request ID is " + AQUA + "#" + id + GOLD + ".");
+								sender.sendMessage(GOLD + "Your request: '" + AQUA + request + GOLD + "'");
+								Player[] playersOnline = Bukkit.getServer().getOnlinePlayers().toArray(new Player[Bukkit.getServer().getOnlinePlayers().size()]);
+								for (int i = 0; i < playersOnline.length; i++) {
+									Player player1 = (Player) playersOnline[i];
+									if (player1.hasPermission("modreq.veiwQueue")) {
+										player1.sendMessage(prefix + AQUA + name + GOLD + " has submitted a new request with ID " + AQUA + "#" + id + GOLD + "!");
+									}
+								}
 							}
+						} catch (SQLException e) {
+							e.printStackTrace();
 						}
 					} else {
 						sender.sendMessage(noPerm);
@@ -250,7 +260,6 @@ public class main extends JavaPlugin implements Listener {
 			}
 			return true;
 		}
-		
 	}
 	
 	public class commandModqueue implements CommandExecutor {
@@ -382,8 +391,9 @@ public class main extends JavaPlugin implements Listener {
 							}
 						}
 					}
-					sender.sendMessage(prefix + "Successfully accepted request #" + id + "!"); //TODO maybe a way to validate they did actually accept the ticket? 
-					//If one where to enter in a ticket number that doesn't exist, this would still trigger. Probably... I think...
+					sender.sendMessage(prefix + "Successfully accepted request " + AQUA + "#" + id + GOLD + "!"); 
+					//TODO maybe a way to validate they did actually accept the ticket? 
+					//If one where to enter in a ticket number that doesn't exist, this would still trigger.
 				}
 			} else {
 				sender.sendMessage(noPerm);
