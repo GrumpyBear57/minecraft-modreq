@@ -126,6 +126,33 @@ public class main extends JavaPlugin implements Listener {
 						}
 					}
 				}
+			} else if (player.hasPermission("modreq.admin")) {
+				String query = "SELECT ID,name FROM requests WHERE status IN ('OPEN', 'ESCALATED')";
+				try {
+					connection = hikari.getConnection();
+					p = connection.prepareStatement(query);
+					ResultSet rs = p.executeQuery();
+					if (rs.next()) {
+						player.sendMessage(prefix + "New request(s) in queue!");
+					}
+				} catch (SQLException e) {
+					e.printStackTrace();
+				} finally {
+					if(connection != null) {
+						try {
+							connection.close();
+						} catch (SQLException e) {
+							e.printStackTrace();
+						}
+					}
+					if (p != null) {
+						try {
+							p.close();
+						} catch (SQLException e) {
+							e.printStackTrace();
+						}
+					}
+				}
 			}
 		}
 	}
