@@ -422,6 +422,7 @@ public class main extends JavaPlugin implements Listener {
 		@Override
 		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 			PreparedStatement p = null;
+			PreparedStatement p1 = null;
 			Player player = (Player) sender; 
 			if (player.hasPermission("modreq.reqaccept")){
 				if (args.length == 0 || args.length > 1) {
@@ -435,13 +436,46 @@ public class main extends JavaPlugin implements Listener {
 					String UUID = ((Player) sender).getUniqueId().toString();
 					String name = ((Player) sender).getDisplayName();
 					
-					String query = "UPDATE requests SET status='pending', assignee='" + UUID + "', assignee_name='" + name + "' WHERE id=?";
-					
+					String checkQuery = "SELECT status FROM requests WHERE id=?";
 					try {
 						connection = hikari.getConnection();
-						p = connection.prepareStatement(query);
+						p = connection.prepareStatement(checkQuery);
 						p.setInt(1, id);
-						p.execute();
+						ResultSet rs = p.executeQuery();
+						if (rs.next()) {
+							String reqStatus = rs.getString("status");
+							if (!((reqStatus).equals("open"))) {
+								sender.sendMessage(RED + "That ticket isn't open!");
+							} else {
+								String query = "UPDATE requests SET status='pending', assignee='" + UUID + "', assignee_name='" + name + "' WHERE id=?";
+								try {
+									connection = hikari.getConnection();
+									p1 = connection.prepareStatement(query);
+									p1.setInt(1, id);
+									p1.execute();
+								} catch (SQLException e) {
+									e.printStackTrace();
+								} finally {
+									if (connection != null) {
+										try {
+											connection.close();
+										} catch (SQLException e) {
+											e.printStackTrace();
+										}
+									}
+									if (p1 != null) {
+										try {
+											p1.close();
+										} catch (SQLException e) {
+											e.printStackTrace();
+										}
+									}
+								}
+								sender.sendMessage(prefix + "Successfully accepted request " + AQUA + "#" + id + GOLD + "!"); 
+							}
+						} else {
+							sender.sendMessage(RED + "That ticket doesn't exist!");
+						}
 					} catch (SQLException e) {
 						e.printStackTrace();
 					} finally {
@@ -452,7 +486,6 @@ public class main extends JavaPlugin implements Listener {
 								e.printStackTrace();
 							}
 						}
-					
 						if (p != null) {
 							try {
 								p.close();
@@ -461,9 +494,6 @@ public class main extends JavaPlugin implements Listener {
 							}
 						}
 					}
-					sender.sendMessage(prefix + "Successfully accepted request " + AQUA + "#" + id + GOLD + "!"); 
-					//TODO maybe a way to validate they did actually accept the ticket? 
-					//If one where to enter in a ticket number that doesn't exist, this would still trigger.
 				}
 			} else {
 				sender.sendMessage(noPerm);
