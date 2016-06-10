@@ -176,15 +176,17 @@ public class main extends JavaPlugin implements Listener {
 		@Override
 		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 			PreparedStatement p = null;
+			Player player = (Player) sender;
 			if (args.length == 0) {
 				sender.sendMessage(prefix + GOLD + "This server is running " + GREEN + "Mod Request " + version + GOLD + " by GrumpyBear57!");
-				sender.sendMessage(GOLD + "To submit a request, do /modreq <request>");
+				if (player.hasPermission("modreq.newReq")) {
+					sender.sendMessage(GOLD + "To submit a request, do /modreq <request>");
+				}
 				sender.sendMessage(AQUA + "Licensed under Apache v2.0, Copyright 2016 GrumpyBear57");
 			} else { 
 				if (!(sender instanceof Player)) {
 					sender.sendMessage(notPlayer);
 				} else {
-					Player player = (Player) sender;
 					int ticketNumber = 42; //this is temporary until we get the request database going.
 					
 					if(player.hasPermission("modreq.newReq")) {
