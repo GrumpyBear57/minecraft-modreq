@@ -198,7 +198,7 @@ public class main extends JavaPlugin implements Listener {
 								request += args[i];
 							}
 						}
-						String query = "INSERT INTO requests (user, name, status, time_submitted, location, request) " + 
+						String insert = "INSERT INTO requests (user, name, status, time_submitted, location, request) " + 
 						"VALUES (?, ?, 'OPEN', now(), ?, ?)";
 						
 						String UUID = ((Player) sender).getUniqueId().toString();
@@ -207,7 +207,7 @@ public class main extends JavaPlugin implements Listener {
 
 						try {
 							connection = hikari.getConnection();
-							p = connection.prepareStatement(query);
+							p = connection.prepareStatement(insert);
 							p.setString(1, UUID);
 							p.setString(2, name);
 							p.setString(3, location);
@@ -219,6 +219,14 @@ public class main extends JavaPlugin implements Listener {
 							if (connection != null) {
 								try {
 									connection.close();
+								} catch (SQLException e) {
+									e.printStackTrace();
+								}
+							}
+							
+							if (p != null) {
+								try {
+									p.close();
 								} catch (SQLException e) {
 									e.printStackTrace();
 								}
