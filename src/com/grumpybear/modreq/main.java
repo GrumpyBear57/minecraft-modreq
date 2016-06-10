@@ -336,11 +336,15 @@ public class main extends JavaPlugin implements Listener {
 		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 			Player player = (Player) sender; 
 			if (player.hasPermission("modreq.reqaccept")){
-				if ((!(isInt(args[0]))) || args.length == 0 || args.length > 1){
+				if (args.length == 0 || args.length > 1) {
 					sender.sendMessage(RED + "Please enter a valid request ID!");
-				} else if (!(sender instanceof Player)) {
+				} else if (!(isInt(args[0]))) {
+					sender.sendMessage(RED + "Please enter a valid request ID!");
+				} else  if (!(sender instanceof Player)) {
 					sender.sendMessage(notPlayer);
 				} else {
+					int id = Integer.parseInt(args[0]);
+					
 					//TODO get the id the user specified, check the database for that id. if it exists and is open, assign it to sender
 				}
 			} else {
