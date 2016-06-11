@@ -165,7 +165,9 @@ public class main extends JavaPlugin implements Listener {
 		String password = config.getString("Database.Password");
 		
 		hikari = new HikariDataSource();
-		hikari.setMaximumPoolSize(8);
+		hikari.setMaximumPoolSize(10);
+		hikari.setMinimumIdle(2);
+		hikari.setIdleTimeout(60000);
 		hikari.setDataSourceClassName("com.mysql.jdbc.jdbc2.optional.MysqlDataSource");
 		hikari.addDataSourceProperty("serverName", address);
 		hikari.addDataSourceProperty("port", 3306);
@@ -199,26 +201,11 @@ public class main extends JavaPlugin implements Listener {
 			connection = hikari.getConnection();
 			p = connection.prepareStatement(createTable);
 			p.execute();
+			connection.close();
+			p.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
-		} finally {
-			if(connection != null) {
-				try {
-					connection.close();
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
-			}
-			
-			if (p != null) {
-				try {
-					p.close();
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
-			}
-			
-		}
+		} 
 	}
 	
 	public static boolean isInt(String s) {
@@ -272,24 +259,11 @@ public class main extends JavaPlugin implements Listener {
 							p.setString(3, location);
 							p.setString(4, request);
 							p.execute();
+							connection.close();
+							p.close();
 						} catch (SQLException e) {
 							e.printStackTrace();
-						} finally {
-							if (connection != null) {
-								try {
-									connection.close();
-								} catch (SQLException e) {
-									e.printStackTrace();
-								}
-							}
-							if (p != null) {
-								try {
-									p.close();
-								} catch (SQLException e) {
-									e.printStackTrace();
-								}
-							}
-						}
+						} 
 						String getID = "SELECT id FROM requests WHERE user=? AND location=? AND request=?";
 						try {
 							connection = hikari.getConnection();
@@ -311,6 +285,9 @@ public class main extends JavaPlugin implements Listener {
 									}
 								}
 							}
+							connection.close();
+							p.close();
+							rs.close();
 						} catch (SQLException e) {
 							e.printStackTrace();
 						}
@@ -352,24 +329,11 @@ public class main extends JavaPlugin implements Listener {
 						} else {
 							sender.sendMessage(prefix + "No items in queue!");
 						}
+						connection.close();
+						p.close();
+						rs.close();
 					} catch (SQLException e) {
 						e.printStackTrace();
-					} finally {
-						if(connection != null) {
-							try {
-								connection.close();
-							} catch (SQLException e) {
-								e.printStackTrace();
-							}
-						}
-						
-						if (p != null) {
-						try {
-								p.close();
-							} catch (SQLException e) {
-								e.printStackTrace();
-							}
-						}
 					}
 				}
 			} else if (player.hasPermission("modreq.viewQueue")) {
@@ -395,24 +359,11 @@ public class main extends JavaPlugin implements Listener {
 						} else {
 							sender.sendMessage(prefix + "No items in queue!");
 						}
+						connection.close();
+						p.close();
+						rs.close();
 					} catch (SQLException e) {
 						e.printStackTrace();
-					} finally {
-						if(connection != null) {
-							try {
-								connection.close();
-							} catch (SQLException e) {
-								e.printStackTrace();
-							}
-						}
-
-						if (p != null) {
-							try {
-								p.close();
-							} catch (SQLException e) {
-								e.printStackTrace();
-							}
-						}
 					}
 				}
 			} else {
@@ -457,47 +408,22 @@ public class main extends JavaPlugin implements Listener {
 									p1 = connection.prepareStatement(query);
 									p1.setInt(1, id);
 									p1.execute();
+									connection.close();
+									p1.close();
 								} catch (SQLException e) {
 									e.printStackTrace();
-								} finally {
-									if (connection != null) {
-										try {
-											connection.close();
-										} catch (SQLException e) {
-											e.printStackTrace();
-										}
-									}
-									if (p1 != null) {
-										try {
-											p1.close();
-										} catch (SQLException e) {
-											e.printStackTrace();
-										}
-									}
-								}
+								} 
 								sender.sendMessage(prefix + "Successfully accepted request " + AQUA + "#" + id + GOLD + "!"); 
 							}
 						} else {
 							sender.sendMessage(RED + "That request doesn't exist!");
 						}
+						connection.close();
+						p.close();
+						rs.close();
 					} catch (SQLException e) {
 						e.printStackTrace();
-					} finally {
-						if (connection != null) {
-							try {
-								connection.close();
-							} catch (SQLException e) {
-								e.printStackTrace();
-							}
-						}
-						if (p != null) {
-							try {
-								p.close();
-							} catch (SQLException e) {
-								e.printStackTrace();
-							}
-						}
-					}
+					} 
 				}
 			} else {
 				sender.sendMessage(noPerm);
@@ -557,24 +483,11 @@ public class main extends JavaPlugin implements Listener {
 										p1.setString(3, name);
 										p1.setInt(4, id);
 										p1.execute();
+										connection.close();
+										p1.close();
 									} catch (SQLException e) {
 										e.printStackTrace();
-									} finally {
-										if (connection != null) {
-											try {
-												connection.close();
-											} catch (SQLException e) {
-												e.printStackTrace();
-											}
-										}
-										if (p1 != null) {
-											try {
-												p1.close();
-											} catch (SQLException e) {
-												e.printStackTrace();
-											}
-										}
-									}
+									} 
 								}
 							} else {
 								if (!((assignee).equals(playerUUID))) {
@@ -600,44 +513,19 @@ public class main extends JavaPlugin implements Listener {
 										p2.setString(3, name);
 										p2.setInt(4, id);
 										p2.execute();
+										connection.close();
+										p2.close();
 									} catch (SQLException e) {
 										e.printStackTrace();
-									} finally {
-										if (connection != null) {
-											try {
-												connection.close();
-											} catch (SQLException e) {
-												e.printStackTrace();
-											}
-										}
-										if (p2 != null) {
-											try {
-												p2.close();
-											} catch (SQLException e) {
-												e.printStackTrace();
-											}
-										}
-									}
+									} 
 								}
 							}
 						}
+						connection.close();
+						p.close();
+						rs.close();
 					} catch (SQLException e){
 						e.printStackTrace();
-					} finally {
-						if (connection != null) {
-							try {
-								connection.close();
-							} catch (SQLException e) {
-								e.printStackTrace();
-							}
-						}
-						if (p !=null) {
-							try {
-								p.close();
-							} catch (SQLException e) {
-								e.printStackTrace();
-							}
-						}
 					}
 					sender.sendMessage(prefix + "Successfully resolved request " + AQUA + "#" + id + GOLD + "!");
 				}
@@ -675,24 +563,11 @@ public class main extends JavaPlugin implements Listener {
 						p.setString(1, resolution);
 						p.setInt(2, id);
 						p.execute();
+						connection.close();
+						p.close();
 					} catch (SQLException e) {
 						e.printStackTrace();
-					} finally {
-						if (connection != null) {
-							try {
-								connection.close();
-							} catch (SQLException e) {
-								e.printStackTrace();
-							}
-						}
-						if (p !=null) {
-							try {
-								p.close();
-							} catch (SQLException e) {
-								e.printStackTrace();
-							}
-						}
-					}
+					} 
 					sender.sendMessage(prefix + "Successfully closed request " + AQUA + "#" + id + GOLD + "!");
 				}
 			}
