@@ -24,6 +24,10 @@ commands:
     description: Mark a ticket as closed.
     usage: /reqclose [ID] <Reason>
     permission: modreq.reqClose
+  reqstatus:
+    description: Check the status of a ticket.
+    usage: /reqstatus [ID]
+    permission: modreq.reqStatus
 permissions: 
   modreq.*:
     description: Allows all modreq commands
@@ -32,7 +36,8 @@ permissions:
       modreq.viewQueue: true
       modreq.reqAccept: true
       modreq.reqResolve: true
-      modreq.close: true
+      modreq.reqClose: true
+      modreq.reqStatus: true
       modreq.admin: true
   modreq.newReq:
     description: Allows usage of /modreq [request]
@@ -48,6 +53,9 @@ permissions:
     default: op
   modreq.reqClose: 
     descprition: Allows usage of /reqclose
+    default: op
+  modreq.reqStatus: 
+    description: Allows usage of /reqstatus
     default: op
   modreq.admin: 
     descprition: Allows user to close other staff members requests

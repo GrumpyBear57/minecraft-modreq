@@ -60,6 +60,7 @@ public class main extends JavaPlugin implements Listener {
 		this.getCommand("reqaccept").setExecutor(new commandReqaccept());
 		this.getCommand("reqresolve").setExecutor(new commandReqresolve());
 		this.getCommand("reqclose").setExecutor(new commandReqclose());
+		this.getCommand("reqstatus").setExecutor(new commandReqstatus());
 		
 		getServer().getPluginManager().registerEvents(new staffJoinListener(), this);
 		
@@ -597,7 +598,7 @@ public class main extends JavaPlugin implements Listener {
 					sender.sendMessage(notPlayer);
 				} else {
 					int id = Integer.parseInt(args[0]);
-					String checkID = "SELECT id,user,status,assignee_name,time_submitted,request,note_x,resolution,resolver_name,escalated FROM requests WHERE id=?";
+					String checkID = "SELECT id,user,status,assignee,assignee_name,time_submitted,time_resolved,request,note_x,resolution,resolver_name FROM requests WHERE id=?";
 					try {
 						connection = hikari.getConnection();
 						p = connection.prepareStatement(checkID);
@@ -605,14 +606,45 @@ public class main extends JavaPlugin implements Listener {
 						ResultSet rs = p.executeQuery();
 						if (rs.next()) {
 							String playerUUID = ((Player) sender).getUniqueId().toString();
-							String reqUUID = rs.getString("user");
-							if ((playerUUID).equals(reqUUID)) {
-								//TODO show user information about the ticket they requested
+							String subUUID = rs.getString("user");
+							String assUUID = rs.getString("assignee"); //I'm well aware that says ass. Deal with it.  
+							if ((playerUUID).equals(subUUID) || (playerUUID).equals(assUUID) || player.hasPermission("modreq.admin")) {
+								int reqID = rs.getInt("id");
+								String reqStatus = rs.getString("status");
+								String assName = rs.getString("assignee_name");
+								String subTime = rs.getString("time_submitted");
+								String resTime = rs.getString("time_resolved");
+								String request = rs.getString("request");
+								String note = rs.getString("note_x"); //TODO figure out a way to get this to create as many note colums as config specifies
+								String reqRes = rs.getString("resolution");
+								String reqResName = rs.getString("resolver_name");
+								sender.sendMessage(prefix + "Request " + AQUA + "#" + reqID + GOLD + ":");
+								sender.sendMessage(GOLD + "Status: " +  AQUA + reqStatus);
+								if (assName != null && !assName.isEmpty()) {
+									sender.sendMessage(GOLD + "Assigned to: " + AQUA + assName);
+								} else {
+									sender.sendMessage(GOLD + "Assigned to: " + AQUA + "No one");
+								}
+								sender.sendMessage(GOLD + "Submitted at: " + AQUA + subTime);
+								if (resTime != null && !resTime.isEmpty()) {
+									sender.sendMessage(GOLD + "Resolved at: " + AQUA + resTime);
+								}
+								sender.sendMessage(GOLD + "Request: " + AQUA + request);
+								if (note != null && !note.isEmpty()) {
+									sender.sendMessage(GOLD + "Note: " + AQUA + note);
+								}
+								if (reqRes != null && !reqRes.isEmpty()) {
+									sender.sendMessage(GOLD + "Resolution: " + AQUA + reqRes);
+								}
+								if (reqResName != null && !reqResName.isEmpty()) {
+									sender.sendMessage(GOLD + "Resolver: " + AQUA + reqResName);
+								}
+							} else {
+								sender.sendMessage(RED + "You don't have permission to get the status of that request!");
 							}
 						} else {
 							sender.sendMessage(noReq);
 						}
-						
 						connection.close();
 						p.close();
 						rs.close();
@@ -623,8 +655,7 @@ public class main extends JavaPlugin implements Listener {
 			} else {
 				sender.sendMessage(noPerm);
 			}
-			
-			return false;
+			return true;
 		}
 	}
 }
