@@ -23,7 +23,8 @@ import com.zaxxer.hikari.HikariDataSource;
 
 public class main extends JavaPlugin implements Listener {
 	// version
-	String version = "v1.0.0";
+	String version = "v1.0.0 (SNAPSHOT)";
+	boolean snapshot = true;
 
 	// colours
 	ChatColor GREEN = ChatColor.GREEN;
@@ -35,10 +36,15 @@ public class main extends JavaPlugin implements Listener {
 	String prefix = RED + "[" + GREEN + "Mod Request" + RED + "] " + GOLD;
 	String noPerm = RED + "You don't have permission to perform that command!";
 	String notPlayer = RED + "You must be a player to perform this command!";
+	String badID = RED + "Please enter a valid request ID!";
+	String noReq = RED + "That request doesn't exist!";
 	
 	// database stuffs  
 	private HikariDataSource hikari;
 	Connection connection = null;
+	Connection connection1 = null;
+	Connection connection2 = null;
+	Connection connection3 = null;
 	
 	// other stuff
 	FileConfiguration config = getConfig();
@@ -52,6 +58,9 @@ public class main extends JavaPlugin implements Listener {
 		this.getCommand("modreq").setExecutor(new commandModreq());
 		this.getCommand("modqueue").setExecutor(new commandModqueue());
 		this.getCommand("reqaccept").setExecutor(new commandReqaccept());
+		this.getCommand("reqresolve").setExecutor(new commandReqresolve());
+		this.getCommand("reqclose").setExecutor(new commandReqclose());
+		this.getCommand("reqstatus").setExecutor(new commandReqstatus());
 		
 		getServer().getPluginManager().registerEvents(new staffJoinListener(), this);
 		
@@ -79,7 +88,7 @@ public class main extends JavaPlugin implements Listener {
 				config.addDefault("Database.Username", "AzureDiamond");
 				config.addDefault("Database.Password", "hunter2");
 				config.addDefault("", "");
-				config.addDefault("##View docs", "<LINK>"); //TODO add link to documentation about plugin (contains things like permission nodes)
+				config.addDefault("##View docs", "https://grumpybear.ga/mc/modreq");
 				config.options().copyDefaults(true);
 				saveConfig();
 			} else {
@@ -104,23 +113,26 @@ public class main extends JavaPlugin implements Listener {
 					if (rs.next()) {
 						player.sendMessage(prefix + "New request(s) in queue!");
 					}
+					connection.close();
+					p.close();
+					rs.close();
 				} catch (SQLException e) {
 					e.printStackTrace();
-				} finally {
-					if(connection != null) {
-						try {
-							connection.close();
-						} catch (SQLException e) {
-							e.printStackTrace();
-						}
+				}
+			} else if (player.hasPermission("modreq.admin")) {
+				String query = "SELECT ID,name FROM requests WHERE status IN ('OPEN', 'ESCALATED')";
+				try {
+					connection = hikari.getConnection();
+					p = connection.prepareStatement(query);
+					ResultSet rs = p.executeQuery();
+					if (rs.next()) {
+						player.sendMessage(prefix + "New request(s) in queue!");
 					}
-					if (p != null) {
-						try {
-							p.close();
-						} catch (SQLException e) {
-							e.printStackTrace();
-						}
-					}
+					connection.close();
+					p.close();
+					rs.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
 				}
 			}
 		}
@@ -134,7 +146,9 @@ public class main extends JavaPlugin implements Listener {
 		String password = config.getString("Database.Password");
 		
 		hikari = new HikariDataSource();
-		hikari.setMaximumPoolSize(8);
+		hikari.setMaximumPoolSize(10);
+		hikari.setMinimumIdle(4);
+		hikari.setIdleTimeout(60000);
 		hikari.setDataSourceClassName("com.mysql.jdbc.jdbc2.optional.MysqlDataSource");
 		hikari.addDataSourceProperty("serverName", address);
 		hikari.addDataSourceProperty("port", 3306);
@@ -155,10 +169,12 @@ public class main extends JavaPlugin implements Listener {
 				  "assignee_name VARCHAR(32) NULL, " +
 				  "time_submitted DATETIME NOT NULL, " +
 				  "time_resolved DATETIME NULL, " +
-				  "location VARCHAR(128) NOT NULL, " +
+				  "location VARCHAR(256) NOT NULL, " +
 				  "request VARCHAR(100) NOT NULL, " +
 				  "note_x VARCHAR(100) NULL, " + //TODO figure out a way to get this to create as many note colums as config specifies
 				  "resolution VARCHAR(100) NULL, " +
+				  "resolver VARCHAR(36) NULL, " +
+				  "resolver_name VARCHAR(32) NULL, " +
 				  "escalated TINYINT NULL, " +
 				  "PRIMARY KEY (id)) ";
 		
@@ -166,26 +182,11 @@ public class main extends JavaPlugin implements Listener {
 			connection = hikari.getConnection();
 			p = connection.prepareStatement(createTable);
 			p.execute();
+			connection.close();
+			p.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
-		} finally {
-			if(connection != null) {
-				try {
-					connection.close();
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
-			}
-			
-			if (p != null) {
-				try {
-					p.close();
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
-			}
-			
-		}
+		} 
 	}
 	
 	public static boolean isInt(String s) {
@@ -204,6 +205,9 @@ public class main extends JavaPlugin implements Listener {
 			Player player = (Player) sender;
 			if (args.length == 0) {
 				sender.sendMessage(prefix + GOLD + "This server is running " + GREEN + "Mod Request " + version + GOLD + " by GrumpyBear57!");
+				if (snapshot) {
+					sender.sendMessage(GOLD + "Please note that this is a snapshot build, things are likely to be either unfinished, or broken.");
+				}
 				if (player.hasPermission("modreq.newReq")) {
 					sender.sendMessage(GOLD + "To submit a request, do /modreq <request>");
 				}
@@ -236,24 +240,11 @@ public class main extends JavaPlugin implements Listener {
 							p.setString(3, location);
 							p.setString(4, request);
 							p.execute();
+							connection.close();
+							p.close();
 						} catch (SQLException e) {
 							e.printStackTrace();
-						} finally {
-							if (connection != null) {
-								try {
-									connection.close();
-								} catch (SQLException e) {
-									e.printStackTrace();
-								}
-							}
-							if (p != null) {
-								try {
-									p.close();
-								} catch (SQLException e) {
-									e.printStackTrace();
-								}
-							}
-						}
+						} 
 						String getID = "SELECT id FROM requests WHERE user=? AND location=? AND request=?";
 						try {
 							connection = hikari.getConnection();
@@ -275,6 +266,9 @@ public class main extends JavaPlugin implements Listener {
 									}
 								}
 							}
+							connection.close();
+							p.close();
+							rs.close();
 						} catch (SQLException e) {
 							e.printStackTrace();
 						}
@@ -313,25 +307,14 @@ public class main extends JavaPlugin implements Listener {
 								String status1 = rs.getString("status");
 								sender.sendMessage(GOLD + "Request ID: " + AQUA + id1 + GOLD + " from " + AQUA + name1 + GOLD + " with status: " + status1 + ".");
 							}
+						} else {
+							sender.sendMessage(prefix + "No items in queue!");
 						}
+						connection.close();
+						p.close();
+						rs.close();
 					} catch (SQLException e) {
 						e.printStackTrace();
-					} finally {
-						if(connection != null) {
-							try {
-								connection.close();
-							} catch (SQLException e) {
-								e.printStackTrace();
-							}
-						}
-						
-						if (p != null) {
-						try {
-								p.close();
-							} catch (SQLException e) {
-								e.printStackTrace();
-							}
-						}
 					}
 				}
 			} else if (player.hasPermission("modreq.viewQueue")) {
@@ -357,24 +340,11 @@ public class main extends JavaPlugin implements Listener {
 						} else {
 							sender.sendMessage(prefix + "No items in queue!");
 						}
+						connection.close();
+						p.close();
+						rs.close();
 					} catch (SQLException e) {
 						e.printStackTrace();
-					} finally {
-						if(connection != null) {
-							try {
-								connection.close();
-							} catch (SQLException e) {
-								e.printStackTrace();
-							}
-						}
-
-						if (p != null) {
-							try {
-								p.close();
-							} catch (SQLException e) {
-								e.printStackTrace();
-							}
-						}
 					}
 				}
 			} else {
@@ -388,12 +358,13 @@ public class main extends JavaPlugin implements Listener {
 		@Override
 		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 			PreparedStatement p = null;
+			PreparedStatement p1 = null;
 			Player player = (Player) sender; 
-			if (player.hasPermission("modreq.reqaccept")){
+			if (player.hasPermission("modreq.reqAccept")){
 				if (args.length == 0 || args.length > 1) {
-					sender.sendMessage(RED + "Please enter a valid request ID!");
+					sender.sendMessage(badID);
 				} else if (!(isInt(args[0]))) {
-					sender.sendMessage(RED + "Please enter a valid request ID!");
+					sender.sendMessage(badID);
 				} else  if (!(sender instanceof Player)) {
 					sender.sendMessage(notPlayer);
 				} else {
@@ -401,35 +372,144 @@ public class main extends JavaPlugin implements Listener {
 					String UUID = ((Player) sender).getUniqueId().toString();
 					String name = ((Player) sender).getDisplayName();
 					
-					String query = "UPDATE requests SET status='pending', assignee='" + UUID + "', assignee_name='" + name + "' WHERE id=?";
-					
+					String checkQuery = "SELECT status FROM requests WHERE id=?";
 					try {
 						connection = hikari.getConnection();
-						p = connection.prepareStatement(query);
+						p = connection.prepareStatement(checkQuery);
 						p.setInt(1, id);
-						p.execute();
+						ResultSet rs = p.executeQuery();
+						if (rs.next()) {
+							String reqStatus = rs.getString("status");
+							if (!((reqStatus).equals("open"))) {
+								sender.sendMessage(RED + "That request isn't open!");
+							} else {
+								String query = "UPDATE requests SET status='pending', assignee='" + UUID + "', assignee_name='" + name + "' WHERE id=?";
+								try {
+									connection1 = hikari.getConnection();
+									p1 = connection1.prepareStatement(query);
+									p1.setInt(1, id);
+									p1.execute();
+									connection1.close();
+									p1.close();
+								} catch (SQLException e) {
+									e.printStackTrace();
+								} 
+								sender.sendMessage(prefix + "Successfully accepted request " + AQUA + "#" + id + GOLD + "!"); 
+							}
+						} else {
+							sender.sendMessage(noReq);
+						}
+						connection.close();
+						p.close();
+						rs.close();
 					} catch (SQLException e) {
 						e.printStackTrace();
-					} finally {
-						if (connection != null) {
-							try {
-								connection.close();
-							} catch (SQLException e) {
-								e.printStackTrace();
+					} 
+				}
+			} else {
+				sender.sendMessage(noPerm);
+			}
+			return true;
+		}
+	}
+
+	public class commandReqresolve implements CommandExecutor {
+		@Override
+		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+			PreparedStatement p = null;
+			PreparedStatement p1 = null;
+			PreparedStatement p2 = null;
+			Player player = (Player) sender;
+			if (player.hasPermission("modreq.reqResolve") || player.hasPermission("modreq.admin")) {
+				if (args.length == 0) {
+					sender.sendMessage(badID);
+				} else if (args.length == 1) {
+					sender.sendMessage(RED + "You need to enter a resolution to the request!");
+				} else if (!(isInt(args[0]))) {
+					sender.sendMessage(badID);
+				} else if (!(sender instanceof Player)) { 
+					sender.sendMessage(notPlayer);
+				} else {
+					int id = Integer.parseInt(args[0]);
+					String checkQuery = "SELECT status,assignee FROM requests WHERE id=?";
+					try {
+						connection1 = hikari.getConnection();
+						p = connection1.prepareStatement(checkQuery);
+						p.setInt(1, id);
+						ResultSet rs = p.executeQuery();
+						if (rs.next()) {
+							String assignee = rs.getString("assignee");
+							String reqStatus = rs.getString("status");
+							String playerUUID = ((Player) sender).getUniqueId().toString();
+							if (player.hasPermission("modreq.admin")) {
+								if (!(reqStatus).equals("pending") && !(reqStatus).equals("escalated")) {
+									sender.sendMessage(RED + "That request isn't assigned!");
+								} else {
+									String query = "UPDATE requests SET status='resolved', time_resolved=now(), resolution=?, resolver=?, resolver_name=? WHERE id=?";
+									String name = ((Player) sender).getDisplayName();
+									String resolution = "";
+									for (int i = 1; i < args.length; i++) {
+										if (i != args.length-1) {
+											resolution += args[i] + " ";
+										} else {
+											resolution += args[i];
+										}
+									}
+									try {
+										connection2 = hikari.getConnection();
+										p1 = connection2.prepareStatement(query);
+										p1.setString(1, resolution);
+										p1.setString(2, playerUUID);
+										p1.setString(3, name);
+										p1.setInt(4, id);
+										p1.execute();
+										connection2.close();
+										p1.close();
+									} catch (SQLException e) {
+										e.printStackTrace();
+									} 
+								}
+							} else {
+								if (!((assignee).equals(playerUUID))) {
+									sender.sendMessage(RED + "You aren't assigned to that request!");
+								} else if (!(reqStatus).equals("pending")) {
+									sender.sendMessage(RED + "That request isn't awaiting resolution!");
+								} else {
+									String query = "UPDATE requests SET status='resolved', time_resolved=now(), resolution=?, resolver=?, resolver_name=? WHERE id=?";
+									String name = ((Player) sender).getDisplayName();
+									String resolution = "";
+									for (int i = 1; i < args.length; i++) {
+										if (i != args.length-1) {
+											resolution += args[i] + " ";
+										} else {
+											resolution += args[i];
+										}
+									}
+									try {
+										connection3 = hikari.getConnection();
+										p2 = connection3.prepareStatement(query);
+										p2.setString(1, resolution);
+										p2.setString(2, playerUUID);
+										p2.setString(3, name);
+										p2.setInt(4, id);
+										p2.execute();
+										connection3.close();
+										p2.close();
+									} catch (SQLException e) {
+										e.printStackTrace();
+									} 
+								}
 							}
+						} else {
+							sender.sendMessage(noReq);
 						}
-					
-						if (p != null) {
-							try {
-								p.close();
-							} catch (SQLException e) {
-								e.printStackTrace();
-							}
-						}
+						connection1.close();
+						p.close();
+						rs.close();
+					} catch (SQLException e){
+						e.printStackTrace();
 					}
-					sender.sendMessage(prefix + "Successfully accepted request " + AQUA + "#" + id + GOLD + "!"); 
-					//TODO maybe a way to validate they did actually accept the ticket? 
-					//If one where to enter in a ticket number that doesn't exist, this would still trigger.
+					sender.sendMessage(prefix + "Successfully resolved request " + AQUA + "#" + id + GOLD + "!");
 				}
 			} else {
 				sender.sendMessage(noPerm);
@@ -438,4 +518,144 @@ public class main extends JavaPlugin implements Listener {
 		}
 	}
 	
+	public class commandReqclose implements CommandExecutor {
+		@Override
+		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+			PreparedStatement p = null;
+			Player player = (Player) sender;
+			if (player.hasPermission("modreq.reqClose") || player.hasPermission("modreq.admin")) {
+				if (args.length == 0) {
+					sender.sendMessage(badID);
+				} else if (!(isInt(args[0]))) {
+					sender.sendMessage(badID);
+				} else if (!(sender instanceof Player)) { 
+					sender.sendMessage(notPlayer);
+				} else {
+					int id = Integer.parseInt(args[0]);
+					String checkID = "SELECT id,status,assignee FROM requests WHERE id=?";
+					try {
+						connection = hikari.getConnection();
+						p = connection.prepareStatement(checkID);
+						p.setInt(1, id);
+						ResultSet rs = p.executeQuery();
+						if (rs.next()) {
+							String reqStatus = rs.getString("status");
+							String assignee = rs.getString("assignee");
+							String playerUUID = ((Player) sender).getUniqueId().toString();
+							if ((reqStatus).equals("pending")) {
+								if ((assignee).equals(playerUUID) || player.hasPermission("modreq.admin")) {
+									String resolution = "";
+									for (int i = 1; i < args.length; i++) {
+										if (i != args.length-1) {
+											resolution += args[i] + " ";
+										} else {
+											resolution += args[i];
+										}
+									}
+									String query = "UPDATE requests SET status='closed', time_resolved=now(), resolution=? WHERE id=?";
+									try {
+										connection = hikari.getConnection();
+										p = connection.prepareStatement(query);
+										p.setString(1, resolution);
+										p.setInt(2, id);
+										p.execute();
+										connection.close();
+										p.close();
+									} catch (SQLException e) {
+										e.printStackTrace();
+									} 
+									sender.sendMessage(prefix + "Successfully closed request " + AQUA + "#" + id + GOLD + "!");
+								} else {
+									sender.sendMessage(RED + "You aren't assigned to that ticket!");
+								}
+							} else {
+								sender.sendMessage(RED + "That request isn't pending!");
+							}
+						} else {
+							sender.sendMessage(noReq);
+						}
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+			return true;
+		}
+	}
+	
+	public class commandReqstatus implements CommandExecutor {
+		@Override
+		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+			Player player = (Player) sender;
+			PreparedStatement p = null;
+			if (player.hasPermission("modreq.reqStatus") || (player.hasPermission("modreq.admin"))) {
+				if (args.length == 0) {
+					sender.sendMessage(badID);
+					//TODO show the requests the user has that aren't closed/resolved. just id & status
+				} else if (!(isInt(args[0]))) {
+					sender.sendMessage(badID);
+				} else if (!(sender instanceof Player)){
+					sender.sendMessage(notPlayer);
+				} else {
+					int id = Integer.parseInt(args[0]);
+					String checkID = "SELECT id,user,status,assignee,assignee_name,time_submitted,time_resolved,request,note_x,resolution,resolver_name FROM requests WHERE id=?";
+					try {
+						connection = hikari.getConnection();
+						p = connection.prepareStatement(checkID);
+						p.setInt(1, id);
+						ResultSet rs = p.executeQuery();
+						if (rs.next()) {
+							String playerUUID = ((Player) sender).getUniqueId().toString();
+							String subUUID = rs.getString("user");
+							String assUUID = rs.getString("assignee"); //I'm well aware that says ass. Deal with it.  
+							if ((playerUUID).equals(subUUID) || (playerUUID).equals(assUUID) || player.hasPermission("modreq.admin")) {
+								int reqID = rs.getInt("id");
+								String reqStatus = rs.getString("status");
+								String assName = rs.getString("assignee_name");
+								String subTime = rs.getString("time_submitted");
+								String resTime = rs.getString("time_resolved");
+								String request = rs.getString("request");
+								String note = rs.getString("note_x"); //TODO figure out a way to get this to create as many note colums as config specifies
+								String reqRes = rs.getString("resolution");
+								String reqResName = rs.getString("resolver_name");
+								sender.sendMessage(prefix + "Request " + AQUA + "#" + reqID + GOLD + ":");
+								sender.sendMessage(GOLD + "Status: " +  AQUA + reqStatus);
+								if (assName != null && !assName.isEmpty()) {
+									sender.sendMessage(GOLD + "Assigned to: " + AQUA + assName);
+								} else {
+									sender.sendMessage(GOLD + "Assigned to: " + AQUA + "No one");
+								}
+								sender.sendMessage(GOLD + "Submitted at: " + AQUA + subTime);
+								if (resTime != null && !resTime.isEmpty()) {
+									sender.sendMessage(GOLD + "Resolved at: " + AQUA + resTime);
+								}
+								sender.sendMessage(GOLD + "Request: " + AQUA + request);
+								if (note != null && !note.isEmpty()) {
+									sender.sendMessage(GOLD + "Note: " + AQUA + note);
+								}
+								if (reqRes != null && !reqRes.isEmpty()) {
+									sender.sendMessage(GOLD + "Resolution: " + AQUA + reqRes);
+								}
+								if (reqResName != null && !reqResName.isEmpty()) {
+									sender.sendMessage(GOLD + "Resolver: " + AQUA + reqResName);
+								}
+							} else {
+								sender.sendMessage(RED + "You don't have permission to get the status of that request!");
+							}
+						} else {
+							sender.sendMessage(noReq);
+						}
+						connection.close();
+						p.close();
+						rs.close();
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+				}
+			} else {
+				sender.sendMessage(noPerm);
+			}
+			return true;
+		}
+	}
 }

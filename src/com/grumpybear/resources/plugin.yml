@@ -7,9 +7,56 @@ commands:
   modreq: 
     description: Submit a request to the staff. 
     usage: /modreq [Request]
+    permission: modreq.newReq
   modqueue: 
     description: View the current request queue. 
     usage: /modqueue
+    permission: modreq.viewQueue
   reqaccept:
     description: Accept a request from the queue.
     usage: /reqaccept [ID]
+    permission: modreq.reqAccept
+  reqresolve:
+    description: Mark a ticket as resolved.
+    usage: /reqresolve [ID] [Resolution]
+    permission: modreq.reqResolve
+  reqclose: 
+    description: Mark a ticket as closed.
+    usage: /reqclose [ID] <Reason>
+    permission: modreq.reqClose
+  reqstatus:
+    description: Check the status of a ticket.
+    usage: /reqstatus [ID]
+    permission: modreq.reqStatus
+permissions: 
+  modreq.*:
+    description: Allows all modreq commands
+    children: 
+      modreq.newReq: true
+      modreq.viewQueue: true
+      modreq.reqAccept: true
+      modreq.reqResolve: true
+      modreq.reqClose: true
+      modreq.reqStatus: true
+      modreq.admin: true
+  modreq.newReq:
+    description: Allows usage of /modreq [request]
+    default: op
+  modreq.viewQueue:
+    description: Allows usage of /modqueue
+    default: op
+  modreq.reqAccept:
+    descprition: Allows usage of /reqaccept
+    default: op
+  modreq.reqResolve: 
+    descprition: Allows usage of /reqresolve
+    default: op
+  modreq.reqClose: 
+    descprition: Allows usage of /reqclose
+    default: op
+  modreq.reqStatus: 
+    description: Allows usage of /reqstatus
+    default: op
+  modreq.admin: 
+    descprition: Allows user to close other staff members requests
+    default: op

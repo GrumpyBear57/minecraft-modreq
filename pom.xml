@@ -45,7 +45,7 @@
 	
 	<build>
 		<defaultGoal>clean install</defaultGoal>
-		<finalName>ModRequest</finalName>
+		<finalName>ModRequest-${version}</finalName>
 		<sourceDirectory>${basedir}/src/com/grumpybear/modreq</sourceDirectory>
 		<resources>
 			<resource>
