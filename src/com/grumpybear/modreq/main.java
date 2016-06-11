@@ -518,7 +518,7 @@ public class main extends JavaPlugin implements Listener {
 		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 			PreparedStatement p = null;
 			Player player = (Player) sender;
-			if (player.hasPermission("modreq.close")) {
+			if (player.hasPermission("modreq.reqClose") || player.hasPermission("modreq.admin")) {
 				if (args.length == 0) {
 					sender.sendMessage(badID);
 				} else if (!(isInt(args[0]))) {
@@ -527,27 +527,51 @@ public class main extends JavaPlugin implements Listener {
 					sender.sendMessage(notPlayer);
 				} else {
 					int id = Integer.parseInt(args[0]);
-					String resolution = "";
-					for (int i = 1; i < args.length; i++) {
-						if (i != args.length-1) {
-							resolution += args[i] + " ";
-						} else {
-							resolution += args[i];
-						}
-					}
-					String query = "UPDATE requests SET status='closed', time_resolved=now(), resolution=? WHERE id=?";
+					String checkID = "SELECT id,status,assignee FROM requests WHERE id=?";
 					try {
 						connection = hikari.getConnection();
-						p = connection.prepareStatement(query);
-						p.setString(1, resolution);
-						p.setInt(2, id);
-						p.execute();
-						connection.close();
-						p.close();
+						p = connection.prepareStatement(checkID);
+						p.setInt(1, id);
+						ResultSet rs = p.executeQuery();
+						if (rs.next()) {
+							String reqStatus = rs.getString("status");
+							String assignee = rs.getString("assignee");
+							String playerUUID = ((Player) sender).getUniqueId().toString();
+							if ((reqStatus).equals("pending")) {
+								if ((assignee).equals(playerUUID) || player.hasPermission("modreq.admin")) {
+									String resolution = "";
+									for (int i = 1; i < args.length; i++) {
+										if (i != args.length-1) {
+											resolution += args[i] + " ";
+										} else {
+											resolution += args[i];
+										}
+									}
+									String query = "UPDATE requests SET status='closed', time_resolved=now(), resolution=? WHERE id=?";
+									try {
+										connection = hikari.getConnection();
+										p = connection.prepareStatement(query);
+										p.setString(1, resolution);
+										p.setInt(2, id);
+										p.execute();
+										connection.close();
+										p.close();
+									} catch (SQLException e) {
+										e.printStackTrace();
+									} 
+									sender.sendMessage(prefix + "Successfully closed request " + AQUA + "#" + id + GOLD + "!");
+								} else {
+									sender.sendMessage(RED + "You aren't assigned to that ticket!");
+								}
+							} else {
+								sender.sendMessage(RED + "That request isn't pending!");
+							}
+						} else {
+							sender.sendMessage(RED + "That request doesn't exist!");
+						}
 					} catch (SQLException e) {
 						e.printStackTrace();
-					} 
-					sender.sendMessage(prefix + "Successfully closed request " + AQUA + "#" + id + GOLD + "!");
+					}
 				}
 			}
 			return true;

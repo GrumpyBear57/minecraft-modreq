@@ -11,7 +11,7 @@ commands:
   modqueue: 
     description: View the current request queue. 
     usage: /modqueue
-    permission: modreq.modqueue
+    permission: modreq.viewQueue
   reqaccept:
     description: Accept a request from the queue.
     usage: /reqaccept [ID]
