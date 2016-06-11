@@ -190,6 +190,8 @@ public class main extends JavaPlugin implements Listener {
 				  "request VARCHAR(100) NOT NULL, " +
 				  "note_x VARCHAR(100) NULL, " + //TODO figure out a way to get this to create as many note colums as config specifies
 				  "resolution VARCHAR(100) NULL, " +
+				  "resolver VARCHAR(36) NULL, " +
+				  "resolver_name VARCHAR(32) NULL, " +
 				  "escalated TINYINT NULL, " +
 				  "PRIMARY KEY (id)) ";
 		
@@ -347,6 +349,8 @@ public class main extends JavaPlugin implements Listener {
 								String status1 = rs.getString("status");
 								sender.sendMessage(GOLD + "Request ID: " + AQUA + id1 + GOLD + " from " + AQUA + name1 + GOLD + " with status: " + status1 + ".");
 							}
+						} else {
+							sender.sendMessage(prefix + "No items in queue!");
 						}
 					} catch (SQLException e) {
 						e.printStackTrace();
@@ -424,7 +428,7 @@ public class main extends JavaPlugin implements Listener {
 			PreparedStatement p = null;
 			PreparedStatement p1 = null;
 			Player player = (Player) sender; 
-			if (player.hasPermission("modreq.reqaccept")){
+			if (player.hasPermission("modreq.reqAccept")){
 				if (args.length == 0 || args.length > 1) {
 					sender.sendMessage(badID);
 				} else if (!(isInt(args[0]))) {
@@ -445,7 +449,7 @@ public class main extends JavaPlugin implements Listener {
 						if (rs.next()) {
 							String reqStatus = rs.getString("status");
 							if (!((reqStatus).equals("open"))) {
-								sender.sendMessage(RED + "That ticket isn't open!");
+								sender.sendMessage(RED + "That request isn't open!");
 							} else {
 								String query = "UPDATE requests SET status='pending', assignee='" + UUID + "', assignee_name='" + name + "' WHERE id=?";
 								try {
@@ -474,7 +478,7 @@ public class main extends JavaPlugin implements Listener {
 								sender.sendMessage(prefix + "Successfully accepted request " + AQUA + "#" + id + GOLD + "!"); 
 							}
 						} else {
-							sender.sendMessage(RED + "That ticket doesn't exist!");
+							sender.sendMessage(RED + "That request doesn't exist!");
 						}
 					} catch (SQLException e) {
 						e.printStackTrace();
@@ -506,8 +510,10 @@ public class main extends JavaPlugin implements Listener {
 		@Override
 		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 			PreparedStatement p = null;
+			PreparedStatement p1 = null;
+			PreparedStatement p2 = null;
 			Player player = (Player) sender;
-			if (player.hasPermission("modreq.resolve")) {
+			if (player.hasPermission("modreq.resolve") || player.hasPermission("modreq.admin")) {
 				if (args.length == 0) {
 					sender.sendMessage(badID);
 				} else if (args.length == 1) {
@@ -518,22 +524,104 @@ public class main extends JavaPlugin implements Listener {
 					sender.sendMessage(notPlayer);
 				} else {
 					int id = Integer.parseInt(args[0]);
-					String resolution = "";
-					for (int i = 1; i < args.length; i++) {
-						if (i != args.length-1) {
-							resolution += args[i] + " ";
-						} else {
-							resolution += args[i];
-						}
-					}
-					String query = "UPDATE requests SET status='resolved', time_resolved=now(), resolution=? WHERE id=?";
+					
+					String checkQuery = "SELECT status,assignee FROM requests WHERE id=?";
 					try {
 						connection = hikari.getConnection();
-						p = connection.prepareStatement(query);
-						p.setString(1, resolution);
-						p.setInt(2, id);
-						p.execute();
-					} catch (SQLException e) {
+						p = connection.prepareStatement(checkQuery);
+						p.setInt(1, id);
+						ResultSet rs = p.executeQuery();
+						if (rs.next()) {
+							String assignee = rs.getString("assignee");
+							String reqStatus = rs.getString("status");
+							String playerUUID = ((Player) sender).getUniqueId().toString();
+							if (player.hasPermission("modreq.admin")) {
+								if (!(reqStatus).equals("pending") && !(reqStatus).equals("escalated")) {
+									sender.sendMessage(RED + "That request isn't assigned!");
+								} else {
+									String query = "UPDATE requests SET status='resolved', time_resolved=now(), resolution=?, resolver=?, resolver_name=? WHERE id=?";
+									String name = ((Player) sender).getDisplayName();
+									String resolution = "";
+									for (int i = 1; i < args.length; i++) {
+										if (i != args.length-1) {
+											resolution += args[i] + " ";
+										} else {
+											resolution += args[i];
+										}
+									}
+									try {
+										connection = hikari.getConnection();
+										p1 = connection.prepareStatement(query);
+										p1.setString(1, resolution);
+										p1.setString(2, playerUUID);
+										p1.setString(3, name);
+										p1.setInt(4, id);
+										p1.execute();
+									} catch (SQLException e) {
+										e.printStackTrace();
+									} finally {
+										if (connection != null) {
+											try {
+												connection.close();
+											} catch (SQLException e) {
+												e.printStackTrace();
+											}
+										}
+										if (p1 != null) {
+											try {
+												p1.close();
+											} catch (SQLException e) {
+												e.printStackTrace();
+											}
+										}
+									}
+								}
+							} else {
+								if (!((assignee).equals(playerUUID))) {
+									sender.sendMessage(RED + "You aren't assigned to that request!");
+								} else if (!(reqStatus).equals("pending")) {
+									sender.sendMessage(RED + "That request isn't awaiting resolution!");
+								} else {
+									String query = "UPDATE requests SET status='resolved', time_resolved=now(), resolution=?, resolver=?, resolver_name=? WHERE id=?";
+									String name = ((Player) sender).getDisplayName();
+									String resolution = "";
+									for (int i = 1; i < args.length; i++) {
+										if (i != args.length-1) {
+											resolution += args[i] + " ";
+										} else {
+											resolution += args[i];
+										}
+									}
+									try {
+										connection = hikari.getConnection();
+										p2 = connection.prepareStatement(query);
+										p2.setString(1, resolution);
+										p2.setString(2, playerUUID);
+										p2.setString(3, name);
+										p2.setInt(4, id);
+										p2.execute();
+									} catch (SQLException e) {
+										e.printStackTrace();
+									} finally {
+										if (connection != null) {
+											try {
+												connection.close();
+											} catch (SQLException e) {
+												e.printStackTrace();
+											}
+										}
+										if (p2 != null) {
+											try {
+												p2.close();
+											} catch (SQLException e) {
+												e.printStackTrace();
+											}
+										}
+									}
+								}
+							}
+						}
+					} catch (SQLException e){
 						e.printStackTrace();
 					} finally {
 						if (connection != null) {
