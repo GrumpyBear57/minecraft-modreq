@@ -582,4 +582,49 @@ public class main extends JavaPlugin implements Listener {
 		}
 	}
 	
+	public class commandReqstatus implements CommandExecutor {
+		@Override
+		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+			Player player = (Player) sender;
+			PreparedStatement p = null;
+			if (player.hasPermission("modreq.reqStatus") || (player.hasPermission("modreq.admin"))) {
+				if (args.length == 0) {
+					sender.sendMessage(badID);
+					//TODO show the requests the user has that aren't closed/resolved. just id & status
+				} else if (!(isInt(args[0]))) {
+					sender.sendMessage(badID);
+				} else if (!(sender instanceof Player)){
+					sender.sendMessage(notPlayer);
+				} else {
+					int id = Integer.parseInt(args[0]);
+					String checkID = "SELECT id,user,status,assignee_name,time_submitted,request,note_x,resolution,resolver_name,escalated FROM requests WHERE id=?";
+					try {
+						connection = hikari.getConnection();
+						p = connection.prepareStatement(checkID);
+						p.setInt(1, id);
+						ResultSet rs = p.executeQuery();
+						if (rs.next()) {
+							String playerUUID = ((Player) sender).getUniqueId().toString();
+							String reqUUID = rs.getString("user");
+							if ((playerUUID).equals(reqUUID)) {
+								//TODO show user information about the ticket they requested
+							}
+						} else {
+							sender.sendMessage(noReq);
+						}
+						
+						connection.close();
+						p.close();
+						rs.close();
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+				}
+			} else {
+				sender.sendMessage(noPerm);
+			}
+			
+			return false;
+		}
+	}
 }
