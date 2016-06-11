@@ -37,6 +37,7 @@ public class main extends JavaPlugin implements Listener {
 	String noPerm = RED + "You don't have permission to perform that command!";
 	String notPlayer = RED + "You must be a player to perform this command!";
 	String badID = RED + "Please enter a valid request ID!";
+	String noReq = RED + "That request doesn't exist!";
 	
 	// database stuffs  
 	private HikariDataSource hikari;
@@ -395,7 +396,7 @@ public class main extends JavaPlugin implements Listener {
 								sender.sendMessage(prefix + "Successfully accepted request " + AQUA + "#" + id + GOLD + "!"); 
 							}
 						} else {
-							sender.sendMessage(RED + "That request doesn't exist!");
+							sender.sendMessage(noReq);
 						}
 						connection.close();
 						p.close();
@@ -499,7 +500,7 @@ public class main extends JavaPlugin implements Listener {
 								}
 							}
 						} else {
-							sender.sendMessage(RED + "That request doesn't exist!");
+							sender.sendMessage(noReq);
 						}
 						connection1.close();
 						p.close();
@@ -570,7 +571,7 @@ public class main extends JavaPlugin implements Listener {
 								sender.sendMessage(RED + "That request isn't pending!");
 							}
 						} else {
-							sender.sendMessage(RED + "That request doesn't exist!");
+							sender.sendMessage(noReq);
 						}
 					} catch (SQLException e) {
 						e.printStackTrace();
