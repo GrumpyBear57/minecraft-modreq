@@ -41,6 +41,9 @@ public class main extends JavaPlugin implements Listener {
 	// database stuffs  
 	private HikariDataSource hikari;
 	Connection connection = null;
+	Connection connection1 = null;
+	Connection connection2 = null;
+	Connection connection3 = null;
 	
 	// other stuff
 	FileConfiguration config = getConfig();
@@ -108,23 +111,11 @@ public class main extends JavaPlugin implements Listener {
 					if (rs.next()) {
 						player.sendMessage(prefix + "New request(s) in queue!");
 					}
+					connection.close();
+					p.close();
+					rs.close();
 				} catch (SQLException e) {
 					e.printStackTrace();
-				} finally {
-					if(connection != null) {
-						try {
-							connection.close();
-						} catch (SQLException e) {
-							e.printStackTrace();
-						}
-					}
-					if (p != null) {
-						try {
-							p.close();
-						} catch (SQLException e) {
-							e.printStackTrace();
-						}
-					}
 				}
 			} else if (player.hasPermission("modreq.admin")) {
 				String query = "SELECT ID,name FROM requests WHERE status IN ('OPEN', 'ESCALATED')";
@@ -135,23 +126,11 @@ public class main extends JavaPlugin implements Listener {
 					if (rs.next()) {
 						player.sendMessage(prefix + "New request(s) in queue!");
 					}
+					connection.close();
+					p.close();
+					rs.close();
 				} catch (SQLException e) {
 					e.printStackTrace();
-				} finally {
-					if(connection != null) {
-						try {
-							connection.close();
-						} catch (SQLException e) {
-							e.printStackTrace();
-						}
-					}
-					if (p != null) {
-						try {
-							p.close();
-						} catch (SQLException e) {
-							e.printStackTrace();
-						}
-					}
 				}
 			}
 		}
@@ -166,7 +145,7 @@ public class main extends JavaPlugin implements Listener {
 		
 		hikari = new HikariDataSource();
 		hikari.setMaximumPoolSize(10);
-		hikari.setMinimumIdle(2);
+		hikari.setMinimumIdle(4);
 		hikari.setIdleTimeout(60000);
 		hikari.setDataSourceClassName("com.mysql.jdbc.jdbc2.optional.MysqlDataSource");
 		hikari.addDataSourceProperty("serverName", address);
@@ -404,11 +383,11 @@ public class main extends JavaPlugin implements Listener {
 							} else {
 								String query = "UPDATE requests SET status='pending', assignee='" + UUID + "', assignee_name='" + name + "' WHERE id=?";
 								try {
-									connection = hikari.getConnection();
-									p1 = connection.prepareStatement(query);
+									connection1 = hikari.getConnection();
+									p1 = connection1.prepareStatement(query);
 									p1.setInt(1, id);
 									p1.execute();
-									connection.close();
+									connection1.close();
 									p1.close();
 								} catch (SQLException e) {
 									e.printStackTrace();
@@ -453,8 +432,8 @@ public class main extends JavaPlugin implements Listener {
 					
 					String checkQuery = "SELECT status,assignee FROM requests WHERE id=?";
 					try {
-						connection = hikari.getConnection();
-						p = connection.prepareStatement(checkQuery);
+						connection1 = hikari.getConnection();
+						p = connection1.prepareStatement(checkQuery);
 						p.setInt(1, id);
 						ResultSet rs = p.executeQuery();
 						if (rs.next()) {
@@ -476,14 +455,14 @@ public class main extends JavaPlugin implements Listener {
 										}
 									}
 									try {
-										connection = hikari.getConnection();
-										p1 = connection.prepareStatement(query);
+										connection2 = hikari.getConnection();
+										p1 = connection2.prepareStatement(query);
 										p1.setString(1, resolution);
 										p1.setString(2, playerUUID);
 										p1.setString(3, name);
 										p1.setInt(4, id);
 										p1.execute();
-										connection.close();
+										connection2.close();
 										p1.close();
 									} catch (SQLException e) {
 										e.printStackTrace();
@@ -506,14 +485,14 @@ public class main extends JavaPlugin implements Listener {
 										}
 									}
 									try {
-										connection = hikari.getConnection();
-										p2 = connection.prepareStatement(query);
+										connection3 = hikari.getConnection();
+										p2 = connection3.prepareStatement(query);
 										p2.setString(1, resolution);
 										p2.setString(2, playerUUID);
 										p2.setString(3, name);
 										p2.setInt(4, id);
 										p2.execute();
-										connection.close();
+										connection3.close();
 										p2.close();
 									} catch (SQLException e) {
 										e.printStackTrace();
@@ -521,7 +500,7 @@ public class main extends JavaPlugin implements Listener {
 								}
 							}
 						}
-						connection.close();
+						connection1.close();
 						p.close();
 						rs.close();
 					} catch (SQLException e){
