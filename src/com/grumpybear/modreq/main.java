@@ -186,7 +186,7 @@ public class main extends JavaPlugin implements Listener {
 				  "assignee_name VARCHAR(32) NULL, " +
 				  "time_submitted DATETIME NOT NULL, " +
 				  "time_resolved DATETIME NULL, " +
-				  "location VARCHAR(128) NOT NULL, " +
+				  "location VARCHAR(256) NOT NULL, " +
 				  "request VARCHAR(100) NOT NULL, " +
 				  "note_x VARCHAR(100) NULL, " + //TODO figure out a way to get this to create as many note colums as config specifies
 				  "resolution VARCHAR(100) NULL, " +
