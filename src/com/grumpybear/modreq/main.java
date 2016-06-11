@@ -418,7 +418,7 @@ public class main extends JavaPlugin implements Listener {
 			PreparedStatement p1 = null;
 			PreparedStatement p2 = null;
 			Player player = (Player) sender;
-			if (player.hasPermission("modreq.resolve") || player.hasPermission("modreq.admin")) {
+			if (player.hasPermission("modreq.reqResolve") || player.hasPermission("modreq.admin")) {
 				if (args.length == 0) {
 					sender.sendMessage(badID);
 				} else if (args.length == 1) {
@@ -429,7 +429,6 @@ public class main extends JavaPlugin implements Listener {
 					sender.sendMessage(notPlayer);
 				} else {
 					int id = Integer.parseInt(args[0]);
-					
 					String checkQuery = "SELECT status,assignee FROM requests WHERE id=?";
 					try {
 						connection1 = hikari.getConnection();
@@ -499,6 +498,8 @@ public class main extends JavaPlugin implements Listener {
 									} 
 								}
 							}
+						} else {
+							sender.sendMessage(RED + "That request doesn't exist!");
 						}
 						connection1.close();
 						p.close();
@@ -508,6 +509,8 @@ public class main extends JavaPlugin implements Listener {
 					}
 					sender.sendMessage(prefix + "Successfully resolved request " + AQUA + "#" + id + GOLD + "!");
 				}
+			} else {
+				sender.sendMessage(noPerm);
 			}
 			return true;
 		}
