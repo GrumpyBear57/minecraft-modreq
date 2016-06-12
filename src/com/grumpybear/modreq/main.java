@@ -271,7 +271,7 @@ public class main extends JavaPlugin implements Listener {
 								Player[] playersOnline = Bukkit.getServer().getOnlinePlayers().toArray(new Player[Bukkit.getServer().getOnlinePlayers().size()]);
 								for (int i = 0; i < playersOnline.length; i++) {
 									Player player1 = (Player) playersOnline[i];
-									if (player1.hasPermission("modreq.veiwQueue")) {
+									if (player1.hasPermission("modreq.viewQueue")) {
 										player1.sendMessage(prefix + AQUA + name + GOLD + " has submitted a new request with ID " + AQUA + "#" + id + GOLD + "!");
 									}
 								}
