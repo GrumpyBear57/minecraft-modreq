@@ -23,8 +23,8 @@ import com.zaxxer.hikari.HikariDataSource;
 
 public class main extends JavaPlugin implements Listener {
 	// version
-	String version = "v1.0.0 (SNAPSHOT)";
-	boolean snapshot = true;
+	String version = "v1.0.0";
+	boolean snapshot = false;
 	protected UpdateChecker updateChecker;
 
 	// colours
