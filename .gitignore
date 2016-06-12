@@ -15,3 +15,4 @@ hs_err_pid*
 .externalToolBuilders/Make JAR.launch
 *.classpath
 *.prefs
+src/com/grumpybear/resources/LICENSE

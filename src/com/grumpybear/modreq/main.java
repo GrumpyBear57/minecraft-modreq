@@ -23,8 +23,9 @@ import com.zaxxer.hikari.HikariDataSource;
 
 public class main extends JavaPlugin implements Listener {
 	// version
-	String version = "v1.0.0 (SNAPSHOT)";
-	boolean snapshot = true;
+	String version = "v1.0.0";
+	boolean snapshot = false;
+	protected UpdateChecker updateChecker;
 
 	// colours
 	ChatColor GREEN = ChatColor.GREEN;
@@ -63,6 +64,15 @@ public class main extends JavaPlugin implements Listener {
 		this.getCommand("reqstatus").setExecutor(new commandReqstatus());
 		
 		getServer().getPluginManager().registerEvents(new staffJoinListener(), this);
+		
+		// check for updates
+		this.updateChecker = new UpdateChecker(this, "http://www.grumpybear.ga/mc/modreq/v/version.xml");
+		if (this.updateChecker.newUpdate()) {
+			log.info("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+			log.info("A new version of modreq is available! Version: " + this.updateChecker.getVersion());
+			log.info("You can download the latest version here: " + this.updateChecker.getLink());
+			log.info("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+		}
 		
 		// DO EVERYTHING NOT DATABSE RELATED BEFORE THIS
 		connectDB();
@@ -261,7 +271,7 @@ public class main extends JavaPlugin implements Listener {
 								Player[] playersOnline = Bukkit.getServer().getOnlinePlayers().toArray(new Player[Bukkit.getServer().getOnlinePlayers().size()]);
 								for (int i = 0; i < playersOnline.length; i++) {
 									Player player1 = (Player) playersOnline[i];
-									if (player1.hasPermission("modreq.veiwQueue")) {
+									if (player1.hasPermission("modreq.viewQueue")) {
 										player1.sendMessage(prefix + AQUA + name + GOLD + " has submitted a new request with ID " + AQUA + "#" + id + GOLD + "!");
 									}
 								}
