@@ -97,7 +97,6 @@ public class main extends JavaPlugin implements Listener {
 				config.addDefault("Database.Name", "database");
 				config.addDefault("Database.Username", "AzureDiamond");
 				config.addDefault("Database.Password", "hunter2");
-				config.addDefault("", "");
 				config.addDefault("##View docs", "https://grumpybear.ga/mc/modreq");
 				config.options().copyDefaults(true);
 				saveConfig();
