@@ -3,6 +3,16 @@ Plugin for minecraft that will add mod requests to the game (basically a ticketi
 
 Idea inspired by other modreq plugins, but this plugin contains all my own work, nothing copied.
 
+#v1.1.0 todo list
+- [ ] Add request escalation (escalated request require admins)
+- [ ] Add request abandonment (for mods who can't finish a request before they leave)
+- [ ] Add request teleportation (for staff to tp to the location the request was sent) 
+- [ ] Add status for a users open request if they do /reqstatus (only applies if one status is open)
+- [ ] Add modmode (turns select moderation utility commands on)
+- [ ] Implement [Plugin-Metrics](https://github.com/Hidendra/Plugin-Metrics)
+- [ ] Port to Minecraft 1.10?
+
+
 #Branches
 Each main version will have it's own branch, both in development, and after releaese.
 The main branch will always be the latest release version. 
