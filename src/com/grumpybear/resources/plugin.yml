@@ -17,15 +17,15 @@ commands:
     usage: /reqaccept [ID]
     permission: modreq.reqAccept
   reqresolve:
-    description: Mark a ticket as resolved.
+    description: Mark a request as resolved.
     usage: /reqresolve [ID] [Resolution]
     permission: modreq.reqResolve
   reqclose:
-    description: Mark a ticket as closed.
+    description: Mark a request as closed.
     usage: /reqclose [ID] <Reason>
     permission: modreq.reqClose
   reqstatus:
-    description: Check the status of a ticket.
+    description: Check the status of a request.
     usage: /reqstatus [ID]
     permission: modreq.reqStatus
 permissions:
