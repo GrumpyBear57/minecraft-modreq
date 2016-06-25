@@ -667,4 +667,45 @@ public class main extends JavaPlugin implements Listener {
 			return true;
 		}
 	}
+
+	public class commandReqesc implements CommandExecutor {
+		@Override
+		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+		if (sender.hasPermission("modreq.reqEscalate")) {
+
+		}
+		return false;
+		}
+	}
+
+	public class commandReqabandon implements CommandExecutor {
+		@Override
+		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+		if (sender.hasPermission("modreq.reqAccept")) {
+			//TODO CODE
+		}
+		return false;
+		}
+	}
+
+	public class commandReqtp implements CommandExecutor {
+		@Override
+		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+		if (sender.hasPermission("modreq.reqtp")) {
+			//TODO CODE
+		}
+		return false;
+		}
+	}
+
+	public class commandModmode implements CommandExecutor {
+		@Override
+		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+		if (sender.hasPermission("modreq.modmode")) {
+			//TODO CODE
+		}
+		return false;
+		}
+	}
+
 }
