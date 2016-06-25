@@ -32,25 +32,25 @@ public class main extends JavaPlugin implements Listener {
 	ChatColor GOLD = ChatColor.GOLD;
 	ChatColor RED = ChatColor.RED;
 	ChatColor AQUA = ChatColor.AQUA;
-	
+
 	// chat output vars
 	String prefix = RED + "[" + GREEN + "Mod Request" + RED + "] " + GOLD;
 	String noPerm = RED + "You don't have permission to perform that command!";
 	String notPlayer = RED + "You must be a player to perform this command!";
 	String badID = RED + "Please enter a valid request ID!";
 	String noReq = RED + "That request doesn't exist!";
-	
-	// database stuffs  
+
+	// database stuffs
 	private HikariDataSource hikari;
 	Connection connection = null;
 	Connection connection1 = null;
 	Connection connection2 = null;
 	Connection connection3 = null;
-	
+
 	// other stuff
 	FileConfiguration config = getConfig();
 	Logger log = getLogger();
-	
+
 	@Override
 	public void onEnable() {
 		createConfig();
@@ -62,9 +62,9 @@ public class main extends JavaPlugin implements Listener {
 		this.getCommand("reqresolve").setExecutor(new commandReqresolve());
 		this.getCommand("reqclose").setExecutor(new commandReqclose());
 		this.getCommand("reqstatus").setExecutor(new commandReqstatus());
-		
+
 		getServer().getPluginManager().registerEvents(new staffJoinListener(), this);
-		
+
 		// check for updates
 		this.updateChecker = new UpdateChecker(this, "http://www.grumpybear.ga/mc/modreq/v/version.xml");
 		if (this.updateChecker.newUpdate()) {
@@ -73,18 +73,18 @@ public class main extends JavaPlugin implements Listener {
 			log.info("You can download the latest version here: " + this.updateChecker.getLink());
 			log.info("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 		}
-		
+
 		// DO EVERYTHING NOT DATABSE RELATED BEFORE THIS
 		connectDB();
 		createTable();
 		log.info("Successfully loaded modreq " + version);
 	}
-	
+
 	@Override
 	public void onDisable() {
 		getLogger().info("Unloading modreq " + version);
 	}
-	
+
 	private void createConfig() {
 		try {
 			if (!getDataFolder().exists()) {
@@ -107,12 +107,12 @@ public class main extends JavaPlugin implements Listener {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public class staffJoinListener implements Listener {
 		@EventHandler
 		public void onPlayerJoin(PlayerJoinEvent event) {
 			PreparedStatement p = null;
-			Player player = event.getPlayer(); 
+			Player player = event.getPlayer();
 			if (player.hasPermission("modreq.viewQueue")) {
 				String query = "SELECT id,name FROM requests WHERE status='OPEN'";
 				try {
@@ -146,14 +146,14 @@ public class main extends JavaPlugin implements Listener {
 			}
 		}
 	}
-	
+
 	public void connectDB() {
 		String address = config.getString("Database.Address");
 		String name = config.getString("Database.Name");
 		String username = config.getString("Database.Username");
 		log.info("connecting to database " + name + " on " + address + " with user " + username + "...");
 		String password = config.getString("Database.Password");
-		
+
 		hikari = new HikariDataSource();
 		hikari.setMaximumPoolSize(10);
 		hikari.setMinimumIdle(4);
@@ -186,7 +186,7 @@ public class main extends JavaPlugin implements Listener {
 				  "resolver_name VARCHAR(32) NULL, " +
 				  "escalated TINYINT NULL, " +
 				  "PRIMARY KEY (id)) ";
-		
+
 		try {
 			connection = hikari.getConnection();
 			p = connection.prepareStatement(createTable);
@@ -195,9 +195,9 @@ public class main extends JavaPlugin implements Listener {
 			p.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
-		} 
+		}
 	}
-	
+
 	public static boolean isInt(String s) {
 		try {
 			Integer.parseInt(s);
@@ -206,7 +206,7 @@ public class main extends JavaPlugin implements Listener {
 		}
 		return true;
 	}
-	
+
 	public class commandModreq implements CommandExecutor {
 		@Override
 		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -221,7 +221,7 @@ public class main extends JavaPlugin implements Listener {
 					sender.sendMessage(GOLD + "To submit a request, do /modreq <request>");
 				}
 				sender.sendMessage(AQUA + "Licensed under Apache v2.0, Copyright 2016 GrumpyBear57");
-			} else { 
+			} else {
 				if (!(sender instanceof Player)) {
 					sender.sendMessage(notPlayer);
 				} else {
@@ -234,12 +234,12 @@ public class main extends JavaPlugin implements Listener {
 								request += args[i];
 							}
 						}
-						String insert = "INSERT INTO requests (user, name, status, time_submitted, location, request) " + 
+						String insert = "INSERT INTO requests (user, name, status, time_submitted, location, request) " +
 						"VALUES (?, ?, 'open', now(), ?, ?)";
-						
+
 						String UUID = ((Player) sender).getUniqueId().toString();
 						String name = ((Player) sender).getDisplayName();
-						String location = ((Player) sender).getLocation().toString(); // might have issues with this later... 
+						String location = ((Player) sender).getLocation().toString(); // might have issues with this later...
 
 						try {
 							connection = hikari.getConnection();
@@ -253,7 +253,7 @@ public class main extends JavaPlugin implements Listener {
 							p.close();
 						} catch (SQLException e) {
 							e.printStackTrace();
-						} 
+						}
 						String getID = "SELECT id FROM requests WHERE user=? AND location=? AND request=?";
 						try {
 							connection = hikari.getConnection();
@@ -289,9 +289,9 @@ public class main extends JavaPlugin implements Listener {
 			return true;
 		}
 	}
-	
+
 	public class commandModqueue implements CommandExecutor {
-		@Override 
+		@Override
 		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 			PreparedStatement p = null;
 			Player player = (Player) sender;
@@ -343,7 +343,7 @@ public class main extends JavaPlugin implements Listener {
 							while (rs.next()) {
 								int id1 = rs.getInt("id");
 								String name1 = rs.getString("name");
-								
+
 								sender.sendMessage(GOLD + "Request ID: " + AQUA + id1 + GOLD + " from " + AQUA + name1 + GOLD + ".");
 							}
 						} else {
@@ -362,13 +362,13 @@ public class main extends JavaPlugin implements Listener {
 			return true;
 		}
 	}
-	
+
 	public class commandReqaccept implements CommandExecutor {
 		@Override
 		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 			PreparedStatement p = null;
 			PreparedStatement p1 = null;
-			Player player = (Player) sender; 
+			Player player = (Player) sender;
 			if (player.hasPermission("modreq.reqAccept")){
 				if (args.length == 0 || args.length > 1) {
 					sender.sendMessage(badID);
@@ -380,7 +380,7 @@ public class main extends JavaPlugin implements Listener {
 					int id = Integer.parseInt(args[0]);
 					String UUID = ((Player) sender).getUniqueId().toString();
 					String name = ((Player) sender).getDisplayName();
-					
+
 					String checkQuery = "SELECT status FROM requests WHERE id=?";
 					try {
 						connection = hikari.getConnection();
@@ -402,8 +402,8 @@ public class main extends JavaPlugin implements Listener {
 									p1.close();
 								} catch (SQLException e) {
 									e.printStackTrace();
-								} 
-								sender.sendMessage(prefix + "Successfully accepted request " + AQUA + "#" + id + GOLD + "!"); 
+								}
+								sender.sendMessage(prefix + "Successfully accepted request " + AQUA + "#" + id + GOLD + "!");
 							}
 						} else {
 							sender.sendMessage(noReq);
@@ -413,7 +413,7 @@ public class main extends JavaPlugin implements Listener {
 						rs.close();
 					} catch (SQLException e) {
 						e.printStackTrace();
-					} 
+					}
 				}
 			} else {
 				sender.sendMessage(noPerm);
@@ -436,7 +436,7 @@ public class main extends JavaPlugin implements Listener {
 					sender.sendMessage(RED + "You need to enter a resolution to the request!");
 				} else if (!(isInt(args[0]))) {
 					sender.sendMessage(badID);
-				} else if (!(sender instanceof Player)) { 
+				} else if (!(sender instanceof Player)) {
 					sender.sendMessage(notPlayer);
 				} else {
 					int id = Integer.parseInt(args[0]);
@@ -476,7 +476,7 @@ public class main extends JavaPlugin implements Listener {
 										p1.close();
 									} catch (SQLException e) {
 										e.printStackTrace();
-									} 
+									}
 								}
 							} else {
 								if (!((assignee).equals(playerUUID))) {
@@ -506,7 +506,7 @@ public class main extends JavaPlugin implements Listener {
 										p2.close();
 									} catch (SQLException e) {
 										e.printStackTrace();
-									} 
+									}
 								}
 							}
 						} else {
@@ -526,7 +526,7 @@ public class main extends JavaPlugin implements Listener {
 			return true;
 		}
 	}
-	
+
 	public class commandReqclose implements CommandExecutor {
 		@Override
 		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -537,7 +537,7 @@ public class main extends JavaPlugin implements Listener {
 					sender.sendMessage(badID);
 				} else if (!(isInt(args[0]))) {
 					sender.sendMessage(badID);
-				} else if (!(sender instanceof Player)) { 
+				} else if (!(sender instanceof Player)) {
 					sender.sendMessage(notPlayer);
 				} else {
 					int id = Integer.parseInt(args[0]);
@@ -572,7 +572,7 @@ public class main extends JavaPlugin implements Listener {
 										p.close();
 									} catch (SQLException e) {
 										e.printStackTrace();
-									} 
+									}
 									sender.sendMessage(prefix + "Successfully closed request " + AQUA + "#" + id + GOLD + "!");
 								} else {
 									sender.sendMessage(RED + "You aren't assigned to that ticket!");
@@ -591,7 +591,7 @@ public class main extends JavaPlugin implements Listener {
 			return true;
 		}
 	}
-	
+
 	public class commandReqstatus implements CommandExecutor {
 		@Override
 		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -616,7 +616,7 @@ public class main extends JavaPlugin implements Listener {
 						if (rs.next()) {
 							String playerUUID = ((Player) sender).getUniqueId().toString();
 							String subUUID = rs.getString("user");
-							String assUUID = rs.getString("assignee"); //I'm well aware that says ass. Deal with it.  
+							String assUUID = rs.getString("assignee"); //I'm well aware that says ass. Deal with it.
 							if ((playerUUID).equals(subUUID) || (playerUUID).equals(assUUID) || player.hasPermission("modreq.admin")) {
 								int reqID = rs.getInt("id");
 								String reqStatus = rs.getString("status");
