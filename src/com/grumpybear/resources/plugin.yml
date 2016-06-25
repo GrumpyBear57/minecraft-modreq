@@ -28,6 +28,23 @@ commands:
     description: Check the status of a request.
     usage: /reqstatus [ID]
     permission: modreq.reqStatus
+  reqesc:
+    description: Escalate a request to the admins.
+    usage: /reqesc [ID]
+    permission: modreq.reqEscalate
+  reqabandon:
+    description: Abandon a request back into the queue for other staff to accept.
+    usage: /reqabandon
+    permission: modreq.reqAccept
+  reqtp:
+    description: Teleport to the location of a request.
+    usage: /reqtp [ID]
+    permission: modreq.reqtp
+  modmode:
+    description: Toggle common moderator utilities on.
+    usage: /modmode
+    //TODO add required permission nodes for all utilities we want to toggle.
+    permission:
 permissions:
   modreq.*:
     description: Allows all modreq commands
