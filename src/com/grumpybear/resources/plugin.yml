@@ -1,6 +1,6 @@
 name: Mod-Request
 main: com.grumpybear.modreq.main
-version: 1.0.0
+version: 1.1.0
 author: GrumpyBear57
 description: Modreq plugin, similiar to an IRL ticketing system.
 commands:
@@ -43,7 +43,7 @@ commands:
   modmode:
     description: Toggle common moderator utilities on.
     usage: /modmode
-    //TODO add required permission nodes for all utilities we want to toggle.
+    #TODO add required permission nodes for all utilities we want to toggle.
     permission:
 permissions:
   modreq.*:
