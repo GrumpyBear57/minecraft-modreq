@@ -771,11 +771,11 @@ public class main extends JavaPlugin implements Listener {
 					connection1 = hikari.getConnection();
 					p1 = connection1.prepareStatement(checkQuery);
 					p1.setInt(1, id);
-					ResultSet rs = p.executeQuery();
+					ResultSet rs = p1.executeQuery();
 					if (rs.next()) {
 						String reqStatus = rs.getString("status");
 						String reqUUID = rs.getString("assignee");
-						String playerUUID = ((Player) sender).getUniqueId.toString();
+						String playerUUID = ((Player) sender).getUniqueId().toString();
 						if (!((reqStatus).equals("pending"))) {
 							sender.sendMessage(RED + "That request isn't assigned!");
 						} else if (!((reqUUID).equals(playerUUID))) {
