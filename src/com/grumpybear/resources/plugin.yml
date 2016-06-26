@@ -1,15 +1,15 @@
 name: Mod-Request
 main: com.grumpybear.modreq.main
-version: 1.0.0
+version: 1.1.0
 author: GrumpyBear57
 description: Modreq plugin, similiar to an IRL ticketing system.
-commands: 
-  modreq: 
-    description: Submit a request to the staff. 
+commands:
+  modreq:
+    description: Submit a request to the staff.
     usage: /modreq [Request]
     permission: modreq.newReq
-  modqueue: 
-    description: View the current request queue. 
+  modqueue:
+    description: View the current request queue.
     usage: /modqueue
     permission: modreq.viewQueue
   reqaccept:
@@ -17,21 +17,38 @@ commands:
     usage: /reqaccept [ID]
     permission: modreq.reqAccept
   reqresolve:
-    description: Mark a ticket as resolved.
+    description: Mark a request as resolved.
     usage: /reqresolve [ID] [Resolution]
     permission: modreq.reqResolve
-  reqclose: 
-    description: Mark a ticket as closed.
+  reqclose:
+    description: Mark a request as closed.
     usage: /reqclose [ID] <Reason>
     permission: modreq.reqClose
   reqstatus:
-    description: Check the status of a ticket.
+    description: Check the status of a request.
     usage: /reqstatus [ID]
     permission: modreq.reqStatus
-permissions: 
+  reqesc:
+    description: Escalate a request to the admins.
+    usage: /reqesc [ID]
+    permission: modreq.reqEscalate
+  reqabandon:
+    description: Abandon a request back into the queue for other staff to accept.
+    usage: /reqabandon
+    permission: modreq.reqAccept
+  reqtp:
+    description: Teleport to the location of a request.
+    usage: /reqtp [ID]
+    permission: modreq.reqtp
+  modmode:
+    description: Toggle common moderator utilities on.
+    usage: /modmode
+    #TODO add required permission nodes for all utilities we want to toggle.
+    permission:
+permissions:
   modreq.*:
     description: Allows all modreq commands
-    children: 
+    children:
       modreq.newReq: true
       modreq.viewQueue: true
       modreq.reqAccept: true
@@ -46,17 +63,17 @@ permissions:
     description: Allows usage of /modqueue
     default: op
   modreq.reqAccept:
-    descprition: Allows usage of /reqaccept
+    description: Allows usage of /reqaccept
     default: op
-  modreq.reqResolve: 
-    descprition: Allows usage of /reqresolve
+  modreq.reqResolve:
+    description: Allows usage of /reqresolve
     default: op
-  modreq.reqClose: 
-    descprition: Allows usage of /reqclose
+  modreq.reqClose:
+    description: Allows usage of /reqclose
     default: op
-  modreq.reqStatus: 
+  modreq.reqStatus:
     description: Allows usage of /reqstatus
     default: op
-  modreq.admin: 
-    descprition: Allows user to close other staff members requests
+  modreq.admin:
+    description: Allows user to close other staff members requests
     default: op
