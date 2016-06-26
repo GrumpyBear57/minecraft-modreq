@@ -25,8 +25,8 @@ import com.zaxxer.hikari.HikariDataSource;
 
 public class main extends JavaPlugin implements Listener {
 	// version
-	String version = "v1.0.0";
-	boolean snapshot = false;
+	String version = "v1.1.0-snapshot";
+	boolean snapshot = true;
 	protected UpdateChecker updateChecker;
 
 	// colours
@@ -64,6 +64,7 @@ public class main extends JavaPlugin implements Listener {
 		this.getCommand("reqresolve").setExecutor(new commandReqresolve());
 		this.getCommand("reqclose").setExecutor(new commandReqclose());
 		this.getCommand("reqstatus").setExecutor(new commandReqstatus());
+		this.getCommand("reqesc").setExecutor(new commandReqesc());
 
 		getServer().getPluginManager().registerEvents(new staffJoinListener(), this);
 
@@ -681,10 +682,70 @@ public class main extends JavaPlugin implements Listener {
 	public class commandReqesc implements CommandExecutor {
 		@Override
 		public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+		PreparedStatement p1 = null;
+		PreparedStatement p2 = null;
+		Player player = (Player) sender;
 		if (sender.hasPermission("modreq.reqEscalate")) {
+			if (args.length == 0) {
+				sender.sendMessage(badID);
+			} else if (!(isInt(args[0]))) {
+				sender.sendMessage(badID);
+			} else if (!(sender instanceof Player)) {
+				sender.sendMessage(notPlayer);
+			} else {
+				int id = Integer.parseInt(args[0]);
 
+				String checkQuery = "SELECT status,assignee FROM requests WHERE id=?";
+				String updateQuery = "UPDATE requests SET status='escalated', note_x=? WHERE id=?";
+				try {
+					connection1 = hikari.getConnection();
+					p1 = connection1.prepareStatement(checkQuery);
+					p1.setInt(1, id);
+					ResultSet rs = p1.executeQuery();
+					if (rs.next()) {
+						String reqStatus = rs.getString("status");
+						String reqUUID = rs.getString("assignee");
+						String playerUUID = ((Player) sender).getUniqueId().toString();
+						if (!((reqStatus).equals("pending"))) {
+							sender.sendMessage(RED + "That request isn't assigned!");
+						} else if (!((reqUUID).equals(playerUUID))) {
+							sender.sendMessage(RED + "You aren't assigned to that request!");
+						} else {
+							String note = "";
+							for (int i = 1; i < args.length; i++) {
+								if (i != args.length-1) {
+									note += args[i] + " ";
+								} else {
+									note += args[i];
+								}
+							}
+							try {
+								connection2 = hikari.getConnection();
+								p2 = connection2.prepareStatement(updateQuery);
+								p2.setString(1, note);
+								p2.setInt(2, id);
+								p2.execute();
+								connection2.close();
+								p2.close();
+							} catch (SQLException e) {
+								e.printStackTrace();
+							}
+							sender.sendMessage(prefix + "Successfully escalated request " + AQUA + "#" + id + GOLD + "!");
+						}
+					} else {
+						sender.sendMessage(RED + noReq);
+					}
+					connection1.close();
+					p1.close();
+					rs.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		} else {
+			sender.sendMessage(noPerm);
 		}
-		return false;
+		return true;
 		}
 	}
 
