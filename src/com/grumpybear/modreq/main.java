@@ -1,6 +1,7 @@
 package com.grumpybear.modreq;
 
 import java.io.File;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -19,6 +20,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import org.mcstats.Metrics;
 import com.zaxxer.hikari.HikariDataSource;
 
 public class main extends JavaPlugin implements Listener {
@@ -64,6 +66,14 @@ public class main extends JavaPlugin implements Listener {
 		this.getCommand("reqstatus").setExecutor(new commandReqstatus());
 
 		getServer().getPluginManager().registerEvents(new staffJoinListener(), this);
+
+		// initialize plugin metrics
+		try {
+			Metrics metrics = new Metrics(this);
+			metrics.start();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
 		// check for updates
 		this.updateChecker = new UpdateChecker(this, "http://www.grumpybear.ga/mc/modreq/v/version.xml");
